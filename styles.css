@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+    --primary-color: #00ff00;
+    --bg-color: #000000;
+    --text-color: #ffffff;
+    --button-color: #1a1a1a;
+}
+
+body {
+    font-family: 'VT323', monospace;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.glitch {
+    font-size: 2rem;
+    position: relative;
+    color: var(--primary-color);
+    letter-spacing: 0.1em;
+    text-shadow: 0.05em 0 0 rgba(255,0,0,0.75),
+                -0.025em -0.05em 0 rgba(0,255,0,0.75),
+                0.025em 0.05em 0 rgba(0,0,255,0.75);
+    animation: glitch 500ms infinite;
+}
+
+.glitch::before,
+.glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch::before {
+    left: 0.05em;
+    text-shadow: -0.05em 0 red;
+    animation: glitch-anim 650ms infinite;
+}
+
+.glitch::after {
+    left: -0.05em;
+    text-shadow: -0.05em 0 blue;
+    animation: glitch-anim2 375ms infinite;
+}
+
+@keyframes glitch-anim {
+    0% { clip: rect(20px, 9999px, 51px, 0); }
+    25% { clip: rect(43px, 9999px, 89px, 0); }
+    50% { clip: rect(65px, 9999px, 98px, 0); }
+    75% { clip: rect(82px, 9999px, 35px, 0); }
+    100% { clip: rect(19px, 9999px, 49px, 0); }
+}
+
+@keyframes glitch-anim2 {
+    0% { clip: rect(65px, 9999px, 119px, 0); }
+    25% { clip: rect(14px, 9999px, 45px, 0); }
+    50% { clip: rect(23px, 9999px, 56px, 0); }
+    75% { clip: rect(85px, 9999px, 110px, 0); }
+    100% { clip: rect(42px, 9999px, 78px, 0); }
+}
+
+main {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.input-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+select, input, .btn {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    background-color: var(--button-color);
+    color: var(--text-color);
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+}
+
+.btn {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+}
+
+#nfcData {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    padding: 15px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+.hidden {
+    display: none;
+}
+
+footer {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .glitch {
+        font-size: 1.5rem;
+    }
+
+    #nfcData {
+        font-size: 0.8rem;
+    }
+}

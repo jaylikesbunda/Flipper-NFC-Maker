@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipper Zero NFC Tag Generator</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="glitch" data-text="Flipper Zero NFC Tag Generator">Flipper Zero NFC Tag Generator</h1>
+        </header>
+
+        <main>
+            <div class="input-group">
+                <label for="tagType">Tag Type</label>
+                <select id="tagType">
+                    <option value="URL">URL</option>
+                    <option value="Text">Plain Text</option>
+                    <option value="Phone">Phone Number</option>
+                    <option value="Email">Email</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="inputData">Input Data</label>
+                <input id="inputData" type="text" placeholder="Enter data">
+            </div>
+
+            <button id="generateButton" class="btn">Generate NFC Tag</button>
+
+            <div id="outputSection" class="hidden">
+                <h2>Generated NFC Tag Data</h2>
+                <pre id="nfcData"></pre>
+                <button id="downloadButton" class="btn">Download .nfc File</button>
+            </div>
+        </main>
+
+        <footer>
+            <button id="themeToggle" class="btn btn-small">Toggle Theme</button>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
