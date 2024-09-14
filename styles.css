@@ -1,31 +1,57 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+/* Import a modern, clean font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
+/* Root variables for colors, fonts, and other design elements */
 :root {
-    --primary-color: #00ff00;
-    --bg-color: #000000;
-    --text-color: #ffffff;
-    --button-color: #1a1a1a;
+    /* Color Scheme */
+    --primary-color: #FF6C00;      /* Accent color (Flipper Orange) */
+    --background-color: #121212;   /* Dark background */
+    --surface-color: #1E1E1E;      /* Surface elements */
+    --text-color: #FFFFFF;         /* Primary text color */
+    --secondary-text-color: #B3B3B3; /* Secondary text color */
+    --border-color: #333333;       /* Border color */
+    --input-background: #1E1E1E;   /* Input fields background */
+    --input-border: #2C2C2C;       /* Input fields border */
+    --input-focus-border: var(--primary-color);
+
+    /* Shadows and Effects */
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+    --transition-speed: 0.3s;
+
+    /* Font */
+    --font-family: 'Inter', sans-serif;
+
+    /* Spacing */
+    --container-padding: 20px;
+    --input-padding: 15px;
+    --button-padding: 15px 30px;
+
+    /* Breakpoints */
+    --desktop-width: 1024px;
+}
+
+/* Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    font-family: 'VT323', monospace;
-    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    background-color: var(--background-color);
     color: var(--text-color);
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    transition: all 0.3s ease;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
-    flex-grow: 1;
+    padding: var(--container-padding);
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
@@ -33,129 +59,204 @@ header {
     margin-bottom: 2rem;
 }
 
-.glitch {
-    font-size: 2rem;
-    position: relative;
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
     color: var(--primary-color);
-    letter-spacing: 0.1em;
-    text-shadow: 0.05em 0 0 rgba(255,0,0,0.75),
-                -0.025em -0.05em 0 rgba(0,255,0,0.75),
-                0.025em 0.05em 0 rgba(0,0,255,0.75);
-    animation: glitch 500ms infinite;
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    background: linear-gradient(90deg, var(--primary-color), #FF9D00);
+    background-size: 200%;
+    animation: gradient-animation 5s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.glitch::before,
-.glitch::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.glitch::before {
-    left: 0.05em;
-    text-shadow: -0.05em 0 red;
-    animation: glitch-anim 650ms infinite;
-}
-
-.glitch::after {
-    left: -0.05em;
-    text-shadow: -0.05em 0 blue;
-    animation: glitch-anim2 375ms infinite;
-}
-
-@keyframes glitch-anim {
-    0% { clip: rect(20px, 9999px, 51px, 0); }
-    25% { clip: rect(43px, 9999px, 89px, 0); }
-    50% { clip: rect(65px, 9999px, 98px, 0); }
-    75% { clip: rect(82px, 9999px, 35px, 0); }
-    100% { clip: rect(19px, 9999px, 49px, 0); }
-}
-
-@keyframes glitch-anim2 {
-    0% { clip: rect(65px, 9999px, 119px, 0); }
-    25% { clip: rect(14px, 9999px, 45px, 0); }
-    50% { clip: rect(23px, 9999px, 56px, 0); }
-    75% { clip: rect(85px, 9999px, 110px, 0); }
-    100% { clip: rect(42px, 9999px, 78px, 0); }
+@keyframes gradient-animation {
+    0% {
+        background-position: 0%;
+    }
+    100% {
+        background-position: 200%;
+    }
 }
 
 main {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 20px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .input-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 label {
     display: block;
     margin-bottom: 0.5rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--secondary-text-color);
 }
 
-select, input, .btn {
+input, select {
     width: 100%;
-    padding: 10px;
-    border: 2px solid var(--primary-color);
-    border-radius: 4px;
-    background-color: var(--button-color);
+    padding: var(--input-padding);
+    background-color: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
     color: var(--text-color);
-    font-family: 'VT323', monospace;
     font-size: 1rem;
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+input::placeholder {
+    color: var(--secondary-text-color);
+}
+
+input:focus, select:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px rgba(255, 108, 0, 0.3);
+    outline: none;
 }
 
 .btn {
+    display: inline-block;
+    padding: var(--button-padding);
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    text-align: center;
+    transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+    box-shadow: var(--box-shadow);
 }
 
 .btn:hover {
-    background-color: var(--primary-color);
-    color: var(--bg-color);
+    background-color: #FF7F26;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.8);
 }
 
-.btn-small {
-    padding: 5px 10px;
-    font-size: 0.9rem;
+.btn:active {
+    transform: translateY(0);
+    box-shadow: var(--box-shadow);
+}
+
+#generateButton {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+#outputSection {
+    margin-top: 3rem;
+    background-color: var(--surface-color);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--box-shadow);
+}
+
+#outputSection h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
 }
 
 #nfcData {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
-    padding: 15px;
+    background-color: #2A2A2A;
+    padding: 1.5rem;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: var(--text-color);
     white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 300px;
+    word-break: break-word;
+    max-height: 400px;
     overflow-y: auto;
-    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+}
+
+#downloadButton {
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+footer .btn {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 0.95rem;
 }
 
 .hidden {
     display: none;
 }
 
-footer {
-    text-align: center;
-    margin-top: 2rem;
+/* Tooltip for buttons (e.g., Theme Toggle) */
+.tooltip {
+    position: relative;
+    display: inline-block;
 }
 
-@media (max-width: 600px) {
-    .container {
-        padding: 10px;
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    text-align: center;
+    border-radius: 4px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Adjust as needed */
+    left: 50%;
+    margin-left: -60px; /* Half of tooltip width */
+    opacity: 0;
+    transition: opacity var(--transition-speed);
+    font-size: 0.85rem;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
     }
 
-    .glitch {
+    #outputSection h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    header h1 {
         font-size: 1.5rem;
     }
 
+    input, select {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+    }
+
     #nfcData {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 }
