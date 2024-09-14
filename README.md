@@ -4,11 +4,82 @@ This project provides a simple web-based tool for generating NFC tag data compat
 
 ## Features
 
-- Generate NFC tag data for URLs, phone numbers, and plain text
+
 - Compatible with Flipper Zero NFC format
 - Dynamic file naming based on input data
 - Dark mode toggle for better visibility
 - Downloadable .nfc files
+
+### Supported NFC Types
+
+1. **URL**
+   - Generates a URL record with appropriate URI prefixes
+   - Supports schemes: http, https, ftp, ftps, sftp
+   - Automatically applies efficient URI prefixes
+   - Example: `https://www.example.com`
+
+2. **Phone**
+   - Creates a telephone number record
+   - Uses "tel:" URI scheme
+   - Supports international formats
+   - Example: `+1234567890`
+
+3. **Text**
+   - Produces a plain text record
+   - UTF-8 encoding
+   - Includes language code (default: "en")
+   - Suitable for short messages
+
+4. **Email**
+   - Generates an email address record
+   - Uses "mailto:" URI scheme
+   - Example: `example@example.com`
+
+5. **WiFi**
+   - Creates a WiFi configuration record
+   - Includes SSID, password, authentication type
+   - Format: `SSID:YourNetwork;PASSWORD:YourPassword;AUTH:WPA`
+
+6. **Contact (vCard)**
+   - Generates a vCard 3.0 record
+   - Includes name, phone, email, etc.
+   - Example:
+     ```
+     BEGIN:VCARD
+     VERSION:3.0
+     N:Doe;John
+     TEL:+1234567890
+     EMAIL:john@example.com
+     END:VCARD
+     ```
+
+7. **Geo (Geographic location)**
+   - Creates a location record
+   - Uses "geo:" URI scheme
+   - Format: `geo:37.7749,-122.4194`
+
+8. **SMS**
+   - Generates an SMS record
+   - Includes phone number and optional message
+   - Format: `sms:+1234567890?body=Hello%20World`
+
+9. **LaunchApp (Android Application Record)**
+   - Creates an Android Application Record
+   - Requires package name
+   - Example: `com.example.myapp`
+
+10. **CustomMIME**
+    - Allows custom MIME type records
+    - Format:
+      ```
+      application/x-myapp
+      Custom data here
+      ```
+
+11. **SocialMedia**
+    - Treated as a special URL type
+    - Optimized for social media links
+    - Example: `https://twitter.com/yourprofile`
 
 ## Usage
 
@@ -29,11 +100,6 @@ This project provides a simple web-based tool for generating NFC tag data compat
 
 The NFC tag generator creates data for NTAG215 chips, which are commonly used in NFC applications. The generated data follows the NDEF (NFC Data Exchange Format) specification and is formatted to be compatible with Flipper Zero devices.
 
-### Supported NFC Types
-
-- URL: Generates a URL record with appropriate URI prefixes.
-- Phone: Creates a telephone number record.
-- Text: Produces a plain text record.
 
 ## Contributing
 
