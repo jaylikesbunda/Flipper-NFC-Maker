@@ -13,6 +13,9 @@
     --input-background: #1E1E1E;   /* Input fields background */
     --input-border: #2C2C2C;       /* Input fields border */
     --input-focus-border: var(--primary-color);
+    --mobile-container-padding: 15px;
+    --mobile-input-padding: 12px;
+    --mobile-button-padding: 12px 20px;
 
     /* Shadows and Effects */
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
@@ -232,31 +235,88 @@ footer .btn {
     opacity: 1;
 }
 
-/* Responsive Design */
 @media screen and (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
     header h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
+        margin-top: 3.5rem;
+    }
+
+    .input-group {
+        margin-bottom: 1rem;
+    }
+
+    label {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    input, select {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    #generateButton {
+        margin-top: 1.5rem;
+        padding: 12px;
+        font-size: 1rem;
+    }
+
+    #outputSection {
+        margin-top: 2rem;
+        padding: 1rem;
     }
 
     #outputSection h2 {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
+    }
+
+    #nfcData {
+        font-size: 0.8rem;
+        padding: 1rem;
+        max-height: 200px;
+    }
+
+    #downloadButton {
+        margin-top: 1rem;
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    footer {
+        margin-top: 2rem;
+    }
+
+    footer .btn {
+        padding: 8px 15px;
+        font-size: 0.8rem;
     }
 }
 
 @media screen and (max-width: 480px) {
     header h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
+    }
+
+    .input-group {
+        margin-bottom: 0.8rem;
+    }
+
+    label {
+        font-size: 0.85rem;
     }
 
     input, select {
-        font-size: 0.9rem;
-    }
-
-    .btn {
-        font-size: 0.9rem;
-    }
-
-    #nfcData {
+        padding: 8px;
         font-size: 0.85rem;
+    }
+
+    #generateButton {
+        margin-top: 1.2rem;
+        padding: 10px;
+        font-size: 0.9rem;
     }
 }
