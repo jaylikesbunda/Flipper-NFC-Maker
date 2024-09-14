@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flipper Zero NFC Tag Generator</title>
     <link href="styles.css" rel="stylesheet">
 </head>
@@ -23,7 +22,7 @@
                 </select>
             </div>
 
-            <!-- Existing Tag Type Selection -->
+            <!-- Tag Type Selection -->
             <div class="input-group">
                 <label for="tagType">Tag Type</label>
                 <select id="tagType">
@@ -31,12 +30,101 @@
                     <option value="Text">Plain Text</option>
                     <option value="Phone">Phone Number</option>
                     <option value="Email">Email</option>
+                    <option value="WiFi">Wi-Fi Configuration</option>
+                    <option value="Contact">Contact (vCard)</option>
+                    <option value="Geo">Geo Location</option>
+                    <option value="SMS">SMS Message</option>
+                    <option value="LaunchApp">Launch Application</option>
+                    <option value="CustomMIME">Custom MIME Type</option>
+                    <option value="SocialMedia">Social Media Link</option>
                 </select>
             </div>
 
-            <div class="input-group">
-                <label for="inputData">Input Data</label>
-                <input id="inputData" type="text" placeholder="Enter data">
+            <!-- Dynamic Input Fields -->
+            <div id="inputFields">
+                <!-- URL Input -->
+                <div class="input-group data-field" data-type="URL SocialMedia">
+                    <label for="urlInput">URL</label>
+                    <input id="urlInput" type="text" placeholder="https://example.com">
+                </div>
+
+                <!-- Text Input -->
+                <div class="input-group data-field" data-type="Text">
+                    <label for="textInput">Text</label>
+                    <textarea id="textInput" placeholder="Enter your text here"></textarea>
+                </div>
+
+                <!-- Phone Number Input -->
+                <div class="input-group data-field" data-type="Phone">
+                    <label for="phoneInput">Phone Number</label>
+                    <input id="phoneInput" type="text" placeholder="+1234567890">
+                </div>
+
+                <!-- Email Input -->
+                <div class="input-group data-field" data-type="Email">
+                    <label for="emailInput">Email Address</label>
+                    <input id="emailInput" type="email" placeholder="example@example.com">
+                </div>
+
+                <!-- Wi-Fi Configuration Inputs -->
+                <div class="input-group data-field" data-type="WiFi">
+                    <label for="ssidInput">Wi-Fi SSID</label>
+                    <input id="ssidInput" type="text" placeholder="YourNetwork">
+                </div>
+                <div class="input-group data-field" data-type="WiFi">
+                    <label for="passwordInput">Wi-Fi Password</label>
+                    <input id="passwordInput" type="text" placeholder="YourPassword">
+                </div>
+                <div class="input-group data-field" data-type="WiFi">
+                    <label for="authTypeSelect">Authentication Type</label>
+                    <select id="authTypeSelect">
+                        <option value="WPA">WPA/WPA2</option>
+                        <option value="WEP">WEP</option>
+                        <option value="NONE">None</option>
+                    </select>
+                </div>
+
+                <!-- Contact Input -->
+                <div class="input-group data-field" data-type="Contact">
+                    <label for="contactInput">Contact (vCard)</label>
+                    <textarea id="contactInput" placeholder="BEGIN:VCARD...END:VCARD"></textarea>
+                </div>
+
+                <!-- Geo Location Inputs -->
+                <div class="input-group data-field" data-type="Geo">
+                    <label for="latitudeInput">Latitude</label>
+                    <input id="latitudeInput" type="text" placeholder="37.7749">
+                </div>
+                <div class="input-group data-field" data-type="Geo">
+                    <label for="longitudeInput">Longitude</label>
+                    <input id="longitudeInput" type="text" placeholder="-122.4194">
+                </div>
+
+                <!-- SMS Message Inputs -->
+                <div class="input-group data-field" data-type="SMS">
+                    <label for="smsNumberInput">Phone Number</label>
+                    <input id="smsNumberInput" type="text" placeholder="+1234567890">
+                </div>
+                <div class="input-group data-field" data-type="SMS">
+                    <label for="smsBodyInput">Message Body</label>
+                    <textarea id="smsBodyInput" placeholder="Hello World"></textarea>
+                </div>
+
+                <!-- Launch Application Input -->
+                <div class="input-group data-field" data-type="LaunchApp">
+                    <label for="packageNameInput">Package Name</label>
+                    <input id="packageNameInput" type="text" placeholder="com.example.myapp">
+                </div>
+
+                <!-- Custom MIME Type Inputs -->
+                <div class="input-group data-field" data-type="CustomMIME">
+                    <label for="mimeTypeInput">MIME Type</label>
+                    <input id="mimeTypeInput" type="text" placeholder="application/myapp">
+                </div>
+                <div class="input-group data-field" data-type="CustomMIME">
+                    <label for="mimeDataInput">Data</label>
+                    <textarea id="mimeDataInput" placeholder="Your custom data here"></textarea>
+                </div>
             </div>
 
             <button id="generateButton" class="btn">Generate NFC Tag</button>

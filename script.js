@@ -1,19 +1,63 @@
 document.addEventListener('DOMContentLoaded', () => {
     const tagTypeSelect = document.getElementById('tagType');
     const nfcTagTypeSelect = document.getElementById('nfcTagTypeSelect');
-    const inputDataField = document.getElementById('inputData');
     const generateButton = document.getElementById('generateButton');
     const outputSection = document.getElementById('outputSection');
     const nfcDataOutput = document.getElementById('nfcData');
     const downloadButton = document.getElementById('downloadButton');
     const themeToggle = document.getElementById('themeToggle');
 
+    const inputFieldsContainer = document.getElementById('inputFields');
+    const allInputGroups = inputFieldsContainer.querySelectorAll('.data-field');
+
+    // Map of input elements
+    const inputs = {
+        urlInput: document.getElementById('urlInput'),
+        textInput: document.getElementById('textInput'),
+        phoneInput: document.getElementById('phoneInput'),
+        emailInput: document.getElementById('emailInput'),
+        ssidInput: document.getElementById('ssidInput'),
+        passwordInput: document.getElementById('passwordInput'),
+        authTypeSelect: document.getElementById('authTypeSelect'),
+        contactInput: document.getElementById('contactInput'),
+        latitudeInput: document.getElementById('latitudeInput'),
+        longitudeInput: document.getElementById('longitudeInput'),
+        smsNumberInput: document.getElementById('smsNumberInput'),
+        smsBodyInput: document.getElementById('smsBodyInput'),
+        packageNameInput: document.getElementById('packageNameInput'),
+        mimeTypeInput: document.getElementById('mimeTypeInput'),
+        mimeDataInput: document.getElementById('mimeDataInput')
+    };
+
+    function showRelevantInputs() {
+        const selectedType = tagTypeSelect.value;
+
+        // Hide all input groups
+        allInputGroups.forEach(group => group.style.display = 'none');
+
+        // Show input groups that match the selected type
+        allInputGroups.forEach(group => {
+            const types = group.getAttribute('data-type').split(' ');
+            if (types.includes(selectedType)) {
+                group.style.display = 'block';
+            }
+        });
+    }
+
+
     function updatePlaceholder() {
         const placeholders = {
             'URL': 'https://example.com',
             'Phone': '+1234567890',
             'Text': 'Enter your text here',
-            'Email': 'example@example.com'
+            'Email': 'example@example.com',
+            'WiFi': 'SSID:YourNetwork;PASSWORD:YourPassword;AUTH:WPA',
+            'Contact': 'BEGIN:VCARD\nVERSION:3.0\nN:John Doe\nTEL:+1234567890\nEMAIL:john@example.com\nEND:VCARD',
+            'Geo': 'geo:37.7749,-122.4194',
+            'SMS': 'sms:+1234567890?body=Hello%20World',
+            'LaunchApp': 'com.example.myapp',
+            'CustomMIME': 'application/myapp\nYour custom data here',
+            'SocialMedia': 'https://twitter.com/yourprofile'
         };
         inputDataField.placeholder = placeholders[tagTypeSelect.value] || 'Enter data';
     }
@@ -161,13 +205,14 @@ Pages read: ${this.getNfcPageCount()}`;
                 'mailto:': 0x06,
                 'ftp://': 0x0D,
                 'ftps://': 0x0E,
-                'sftp://': 0x45
+                'sftp://': 0x45,
+                'geo:': 0x1F
             };
 
             let payload;
             let recordType;
 
-            if (type === 'URL') {
+            if (type === 'URL' || type === 'SocialMedia') {
                 let prefix = '';
                 let prefixCode = 0x00;
                 for (let key in uriPrefixes) {
@@ -190,6 +235,15 @@ Pages read: ${this.getNfcPageCount()}`;
                 recordType = 0x54; // 'T' for Text
             } else if (type === 'Email') {
                 payload = [uriPrefixes['mailto:'], ...this.helper.string_to_bytes(data)];
+                recordType = 0x55; // 'U' for URI
+            } else if (type === 'Geo') {
+                const prefixCode = uriPrefixes['geo:'];
+                data = data.slice(4); // Remove 'geo:'
+                payload = [prefixCode, ...this.helper.string_to_bytes(data)];
+                recordType = 0x55; // 'U' for URI
+            } else if (type === 'SMS') {
+                const prefixCode = 0x00; // No prefix code
+                payload = [prefixCode, ...this.helper.string_to_bytes(data)];
                 recordType = 0x55; // 'U' for URI
             } else {
                 throw new Error('Unsupported data type');
@@ -225,30 +279,152 @@ Pages read: ${this.getNfcPageCount()}`;
 
             let ndefMessage = [
                 0x03, // NDEF Message TLV Tag
-                0xFF, // Length field will be in the next two bytes
-                ...[0x00, 0x00], // Placeholder for NDEF message length
+                payloadLength + ndefHeader.length + 1, // Length
                 ...ndefHeader,
                 ...payload,
                 0xFE // Terminator TLV
             ];
 
-            // Calculate total NDEF message length
-            let ndefMessageLength = ndefHeader.length + payload.length + 1; // +1 for Terminator TLV
+            // Write NDEF message to pages starting from page 4
+            this.writeNDEFMessage(ndefMessage);
+        }
 
-            // Update the Length field
-            ndefMessage[2] = (ndefMessageLength >>> 8) & 0xFF;
-            ndefMessage[3] = ndefMessageLength & 0xFF;
+        NDEF_vCard(data) {
+            const payload = this.helper.string_to_bytes(data);
+            const payloadLength = payload.length;
+            const typeBytes = this.helper.string_to_bytes('text/x-vCard');
+            const typeLength = typeBytes.length;
 
-            // Total TLV length
-            let tlvLength = ndefMessageLength + 4; // +4 for TLV header
+            const ndefHeader = [
+                0xD2, // MB=1, ME=1, CF=0, SR=1, IL=0, TNF=010 (MIME Media type)
+                typeLength, // Type Length
+                payloadLength, // Payload Length
+                ...typeBytes
+            ];
 
-            // Check if the NDEF message fits into the tag capacity
-            const totalMemory = (this.getNfcPageCount() - 4) * 4; // Subtract first 4 pages used by header
-            if (tlvLength > totalMemory) {
-                throw new Error('NDEF message exceeds tag capacity.');
+            const ndefMessage = [
+                0x03, // NDEF Message TLV Tag
+                payloadLength + ndefHeader.length + 1, // Length
+                ...ndefHeader,
+                ...payload,
+                0xFE // Terminator TLV
+            ];
+
+            this.writeNDEFMessage(ndefMessage);
+        }
+
+        NDEF_WiFi(data) {
+            // Parse the input data
+            const params = data.split(';').reduce((acc, param) => {
+                const [key, value] = param.split(':');
+                acc[key] = value;
+                return acc;
+            }, {});
+
+            if (!params.SSID || !params.PASSWORD || !params.AUTH) {
+                throw new Error('Invalid Wi-Fi configuration data.');
             }
 
-            // Write NDEF message to pages starting from page 4
+            // Build the Wi-Fi Credential according to Wi-Fi Alliance specification
+            const ssidBytes = this.helper.string_to_bytes(params.SSID);
+            const passwordBytes = this.helper.string_to_bytes(params.PASSWORD);
+            const authType = params.AUTH.toUpperCase() === 'WPA' ? [0x00, 0x02] : [0x00, 0x01]; // WPA or WEP
+
+            const credential = [
+                // Credential TLV
+                0x10, 0x0E, // Credential Type, Length (will be updated later)
+                // SSID TLV
+                0x10, 0x45, ssidBytes.length, ...ssidBytes,
+                // Authentication Type TLV
+                0x10, 0x03, 0x02, ...authType,
+                // Network Key (Password) TLV
+                0x10, 0x27, passwordBytes.length, ...passwordBytes,
+                // MAC Address TLV (optional, skipping)
+            ];
+
+            // Update Credential Length
+            const credentialLength = credential.length - 2; // Exclude the Type and Length fields
+            credential[1] = credentialLength;
+
+            const payload = [
+                // Version TLV
+                0x10, 0x0E, 0x01, 0x10, // Version 1.0
+                // Number of Credentials TLV
+                0x10, 0x02, 0x01, 0x01,
+                // Credential
+                ...credential
+            ];
+
+            const payloadLength = payload.length;
+
+            const ndefHeader = [
+                0xD1, // MB=1, ME=1, CF=0, SR=1, IL=0, TNF=001 (Well-known type)
+                0x03, // Type Length
+                payloadLength, // Payload Length
+                0x53, 0x70, 0x70 // Type 'S' 'p' 'p' (WPS)
+            ];
+
+            const ndefMessage = [
+                0x03, // NDEF Message TLV Tag
+                payloadLength + ndefHeader.length + 1, // Length
+                ...ndefHeader,
+                ...payload,
+                0xFE // Terminator TLV
+            ];
+
+            this.writeNDEFMessage(ndefMessage);
+        }
+
+        NDEF_AAR(packageName) {
+            const payload = this.helper.string_to_bytes(packageName);
+            const payloadLength = payload.length;
+            const typeBytes = this.helper.string_to_bytes('android.com:pkg');
+
+            const ndefHeader = [
+                0xD4, // MB=1, ME=1, CF=0, SR=1, IL=0, TNF=100 (External type)
+                typeBytes.length, // Type Length
+                payloadLength, // Payload Length
+                ...typeBytes
+            ];
+
+            const ndefMessage = [
+                0x03, // NDEF Message TLV Tag
+                payloadLength + ndefHeader.length + 1, // Length
+                ...ndefHeader,
+                ...payload,
+                0xFE // Terminator TLV
+            ];
+
+            this.writeNDEFMessage(ndefMessage);
+        }
+
+        NDEF_CustomMIME(data) {
+            const [mimeType, ...contentArray] = data.split('\n');
+            const content = contentArray.join('\n');
+            const payload = this.helper.string_to_bytes(content);
+            const payloadLength = payload.length;
+            const typeBytes = this.helper.string_to_bytes(mimeType);
+            const typeLength = typeBytes.length;
+
+            const ndefHeader = [
+                0xD2, // MB=1, ME=1, CF=0, SR=1, IL=0, TNF=010 (MIME Media type)
+                typeLength, // Type Length
+                payloadLength, // Payload Length
+                ...typeBytes
+            ];
+
+            const ndefMessage = [
+                0x03, // NDEF Message TLV Tag
+                payloadLength + ndefHeader.length + 1, // Length
+                ...ndefHeader,
+                ...payload,
+                0xFE // Terminator TLV
+            ];
+
+            this.writeNDEFMessage(ndefMessage);
+        }
+
+        writeNDEFMessage(ndefMessage) {
             let pageIndex = 4;
             let byteIndex = 0;
             for (let i = 0; i < ndefMessage.length; i++) {
@@ -257,13 +433,11 @@ Pages read: ${this.getNfcPageCount()}`;
                 if (byteIndex === 4) {
                     byteIndex = 0;
                     pageIndex++;
-                    // Check if we exceed the pages
                     if (pageIndex >= this.nfcPages.length) {
                         throw new Error('NDEF message is too large for the tag.');
                     }
                 }
             }
-
             // Fill the rest of the last page with zeros if necessary
             while (byteIndex < 4) {
                 this.nfcPages[pageIndex][byteIndex] = 0x00;
@@ -277,11 +451,7 @@ Pages read: ${this.getNfcPageCount()}`;
             ).join('\n');
         }
 
-        generate_TAG_URL(data, type = 'URL') {
-            this.nfcUID = this.generateUID();
-            this.generate();
-            this.NDEF_URI_URL(data, type);
-
+        setEndPages() {
             // Set specific end pages based on tag type
             const endPages = {
                 'NTAG213': {
@@ -311,7 +481,44 @@ Pages read: ${this.getNfcPageCount()}`;
                 const pageIndex = parseInt(page, 10); // Convert page to integer
                 this.nfcPages[pageIndex] = tagEndPages[page];
             }
+        }
 
+        generate_TAG_URL(data, type = 'URL') {
+            this.nfcUID = this.generateUID();
+            this.generate();
+            this.NDEF_URI_URL(data, type);
+            this.setEndPages();
+        }
+
+        generate_TAG_vCard(data) {
+            this.nfcUID = this.generateUID();
+            this.generate();
+            this.NDEF_vCard(data);
+            this.setEndPages();
+        }
+
+        generate_TAG_WiFi(data) {
+            this.nfcUID = this.generateUID();
+            this.generate();
+            this.NDEF_WiFi(data);
+            this.setEndPages();
+        }
+
+        generate_TAG_AAR(packageName) {
+            this.nfcUID = this.generateUID();
+            this.generate();
+            this.NDEF_AAR(packageName);
+            this.setEndPages();
+        }
+
+        generate_TAG_CustomMIME(data) {
+            this.nfcUID = this.generateUID();
+            this.generate();
+            this.NDEF_CustomMIME(data);
+            this.setEndPages();
+        }
+
+        exportData() {
             const header = this.generateHeader();
             const pages = this.generatePages();
             return header + '\n' + pages + '\nFailed authentication attempts: 0\n';
@@ -319,9 +526,42 @@ Pages read: ${this.getNfcPageCount()}`;
     }
 
     function generateNFCData() {
-        const inputData = inputDataField.value.trim();
         const selectedType = tagTypeSelect.value;
         const selectedTagType = nfcTagTypeSelect.value;
+
+        let inputData = '';
+
+        // Collect data based on selected type
+        if (selectedType === 'URL' || selectedType === 'SocialMedia') {
+            inputData = inputs.urlInput.value.trim();
+        } else if (selectedType === 'Text') {
+            inputData = inputs.textInput.value.trim();
+        } else if (selectedType === 'Phone') {
+            inputData = inputs.phoneInput.value.trim();
+        } else if (selectedType === 'Email') {
+            inputData = inputs.emailInput.value.trim();
+        } else if (selectedType === 'WiFi') {
+            const ssid = inputs.ssidInput.value.trim();
+            const password = inputs.passwordInput.value.trim();
+            const auth = inputs.authTypeSelect.value;
+            inputData = `SSID:${ssid};PASSWORD:${password};AUTH:${auth}`;
+        } else if (selectedType === 'Contact') {
+            inputData = inputs.contactInput.value.trim();
+        } else if (selectedType === 'Geo') {
+            const lat = inputs.latitudeInput.value.trim();
+            const lng = inputs.longitudeInput.value.trim();
+            inputData = `geo:${lat},${lng}`;
+        } else if (selectedType === 'SMS') {
+            const number = inputs.smsNumberInput.value.trim();
+            const body = encodeURIComponent(inputs.smsBodyInput.value.trim());
+            inputData = `sms:${number}?body=${body}`;
+        } else if (selectedType === 'LaunchApp') {
+            inputData = inputs.packageNameInput.value.trim();
+        } else if (selectedType === 'CustomMIME') {
+            const mimeType = inputs.mimeTypeInput.value.trim();
+            const data = inputs.mimeDataInput.value.trim();
+            inputData = `${mimeType}\n${data}`;
+        }
 
         if (!inputData) {
             alert('Please enter data');
@@ -336,7 +576,25 @@ Pages read: ${this.getNfcPageCount()}`;
 
         try {
             const nfcTag = new nfcNTAG(selectedTagType);
-            const nfcData = nfcTag.generate_TAG_URL(inputData, selectedType);
+            if (selectedType === 'WiFi') {
+                nfcTag.generate_TAG_WiFi(inputData);
+            } else if (selectedType === 'Contact') {
+                nfcTag.generate_TAG_vCard(inputData);
+            } else if (selectedType === 'Geo') {
+                nfcTag.generate_TAG_URL(inputData, 'Geo');
+            } else if (selectedType === 'SMS') {
+                nfcTag.generate_TAG_URL(inputData, 'SMS');
+            } else if (selectedType === 'LaunchApp') {
+                nfcTag.generate_TAG_AAR(inputData);
+            } else if (selectedType === 'CustomMIME') {
+                nfcTag.generate_TAG_CustomMIME(inputData);
+            } else if (selectedType === 'SocialMedia') {
+                nfcTag.generate_TAG_URL(inputData, 'URL');
+            } else {
+                nfcTag.generate_TAG_URL(inputData, selectedType);
+            }
+
+            const nfcData = nfcTag.exportData();
 
             nfcDataOutput.textContent = nfcData;
             outputSection.classList.remove('hidden');
@@ -347,18 +605,35 @@ Pages read: ${this.getNfcPageCount()}`;
     }
 
     function isValidInput(type, data) {
-        // Basic validation based on type
         if (type === 'Email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailRegex.test(data);
         } else if (type === 'Phone') {
             const phoneRegex = /^\+?\d{7,15}$/;
             return phoneRegex.test(data);
-        } else if (type === 'URL') {
+        } else if (type === 'URL' || type === 'SocialMedia') {
             const urlRegex = /^(https?:\/\/)?([^\s$.?#].[^\s]*)$/i;
             return urlRegex.test(data);
         } else if (type === 'Text') {
             return data.length <= 1000;
+        } else if (type === 'WiFi') {
+            const wifiRegex = /^SSID:.+;PASSWORD:.+;AUTH:(WPA|WEP|NONE)$/;
+            return wifiRegex.test(data);
+        } else if (type === 'Contact') {
+            return data.startsWith('BEGIN:VCARD') && data.endsWith('END:VCARD');
+        } else if (type === 'Geo') {
+            const geoRegex = /^geo:-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
+            return geoRegex.test(data);
+        } else if (type === 'SMS') {
+            const smsRegex = /^sms:\+?\d+\?body=.+$/;
+            return smsRegex.test(data);
+        } else if (type === 'LaunchApp') {
+            const packageRegex = /^[a-zA-Z0-9\._]+$/;
+            return packageRegex.test(data);
+        } else if (type === 'CustomMIME') {
+            const [mimeType] = data.split('\n');
+            const mimeRegex = /^[\w\-]+\/[\w\-]+$/;
+            return mimeRegex.test(mimeType);
         }
         return false;
     }
@@ -370,14 +645,11 @@ Pages read: ${this.getNfcPageCount()}`;
         const a = document.createElement('a');
         a.href = url;
 
-        const inputData = inputDataField.value.trim();
-        const tagType = tagTypeSelect.value;
         let filename = 'nfc_tag';
 
-        if (inputData) {
-            const sanitizedData = inputData.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            filename = `${tagType}_${sanitizedData}`.substring(0, 50);
-        }
+        // Use the selected tag type as part of the filename
+        const tagType = tagTypeSelect.value;
+        filename = `nfc_${tagType.toLowerCase()}`;
 
         a.download = `${filename}.nfc`;
         document.body.appendChild(a);
@@ -390,10 +662,10 @@ Pages read: ${this.getNfcPageCount()}`;
         document.body.classList.toggle('dark-theme');
     }
 
-    tagTypeSelect.addEventListener('change', updatePlaceholder);
+    tagTypeSelect.addEventListener('change', showRelevantInputs);
     generateButton.addEventListener('click', generateNFCData);
     downloadButton.addEventListener('click', downloadNFCFile);
     themeToggle.addEventListener('click', toggleTheme);
 
-    updatePlaceholder();
+    showRelevantInputs();
 });
