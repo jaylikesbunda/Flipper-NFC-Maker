@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Flipper Zero NFC Tag Generator</title>
     <link href="styles.css" rel="stylesheet">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <div class="container">
@@ -37,6 +37,11 @@
                     <option value="LaunchApp">Launch Application [Android]</option>
                     <option value="CustomMIME">Custom MIME Type [Android]</option>
                     <option value="SocialMedia">Social Media Link [iOS, Android]</option>
+                    <!-- New iOS-specific options -->
+<!--                     <option value="FaceTime">FaceTime [iOS]</option>
+                    <option value="FaceTimeAudio">FaceTime Audio [iOS]</option>
+                    <option value="AppleMaps">Apple Maps [iOS]</option>
+                    <option value="HomeKit">HomeKit Setup [iOS]</option> -->
                 </select>
             </div>
 
@@ -48,6 +53,19 @@
                     <input id="urlInput" type="text" placeholder="https://example.com">
                 </div>
 
+<!--                 <div class="input-group data-field" data-type="FaceTime FaceTimeAudio">
+                    <label for="facetimeInput">User Identifier (Email or Phone)</label>
+                    <input id="facetimeInput" type="text" placeholder="user@example.com">
+                </div>
+                <div class="input-group data-field" data-type="AppleMaps">
+                    <label for="addressInput">Address</label>
+                    <input id="addressInput" type="text" placeholder="Apple Park, Cupertino, CA">
+                </div>
+                <div class="input-group data-field" data-type="HomeKit">
+                    <label for="homeKitCodeInput">HomeKit Code</label>
+                    <input id="homeKitCodeInput" type="text" placeholder="12345">
+                </div>
+ -->
                 <!-- Text Input -->
                 <div class="input-group data-field" data-type="Text">
                     <label for="textInput">Text</label>

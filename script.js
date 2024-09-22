@@ -26,7 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
         smsBodyInput: document.getElementById('smsBodyInput'),
         packageNameInput: document.getElementById('packageNameInput'),
         mimeTypeInput: document.getElementById('mimeTypeInput'),
-        mimeDataInput: document.getElementById('mimeDataInput')
+        mimeDataInput: document.getElementById('mimeDataInput'),
+        facetimeInput: document.getElementById('facetimeInput'),
+        addressInput: document.getElementById('addressInput'),
+        homeKitCodeInput: document.getElementById('homeKitCodeInput')
     };
 
     function showRelevantInputs() {
@@ -42,24 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 group.style.display = 'block';
             }
         });
-    }
-
-
-    function updatePlaceholder() {
-        const placeholders = {
-            'URL': 'https://example.com',
-            'Phone': '+1234567890',
-            'Text': 'Enter your text here',
-            'Email': 'example@example.com',
-            'WiFi': 'SSID:YourNetwork;PASSWORD:YourPassword;AUTH:WPA',
-            'Contact': 'BEGIN:VCARD\nVERSION:3.0\nN:John Doe\nTEL:+1234567890\nEMAIL:john@example.com\nEND:VCARD',
-            'Geo': 'geo:37.7749,-122.4194',
-            'SMS': 'sms:+1234567890?body=Hello%20World',
-            'LaunchApp': 'com.example.myapp',
-            'CustomMIME': 'application/myapp\nYour custom data here',
-            'SocialMedia': 'https://twitter.com/yourprofile'
-        };
-        inputDataField.placeholder = placeholders[tagTypeSelect.value] || 'Enter data';
     }
 
     class nfcHelper {
@@ -78,7 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         randomHex(size) {
-            return [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+            return [...Array(size)]
+                .map(() => Math.floor(Math.random() * 16).toString(16))
+                .join('');
         }
 
         hexStr_to_byteArray(hex) {
@@ -89,11 +76,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         byteArray_to_hexStr(buffer) {
-            return [...buffer].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+            return [...buffer]
+                .map(x => x.toString(16).padStart(2, '0'))
+                .join('')
+                .toUpperCase();
         }
 
         byteArray_to_hexStr_Split(x) {
-            return x.map(byte => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+            return x
+                .map(byte => byte.toString(16).padStart(2, '0').toUpperCase())
+                .join(' ');
         }
 
         string_to_bytes(x) {
@@ -105,7 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor(nfcDeviceType = 'NTAG215') {
             this.helper = new nfcHelper();
             this.nfcDeviceType = this.validDeviceType(nfcDeviceType);
-            this.nfcPages = Array.from({ length: this.getNfcPageCount() }, () => Array(4).fill(0));
+            this.nfcPages = Array.from(
+                { length: this.getNfcPageCount() },
+                () => Array(4).fill(0)
+            );
             this.nfcUID = this.generateUID();
         }
 
@@ -131,7 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
         generateUID() {
             // Generate a UID based on NFC Forum specifications
             const uid0 = 0x04; // NXP manufacturer code
-            const uidRest = this.helper.hexStr_to_byteArray(this.helper.randomHex(12)); // 6 bytes
+            const uidRest = this.helper.hexStr_to_byteArray(
+                this.helper.randomHex(12)
+            ); // 6 bytes
             const uid = [uid0, ...uidRest]; // Total 7 bytes
             return uid;
         }
@@ -195,7 +192,7 @@ Pages read: ${this.getNfcPageCount()}`;
             }
         }
 
-        NDEF_URI_URL(data, type = 'URL') {
+        NDEF_URI_URL(data) {
             const uriPrefixes = {
                 'http://www.': 0x01,
                 'https://www.': 0x02,
@@ -205,57 +202,41 @@ Pages read: ${this.getNfcPageCount()}`;
                 'mailto:': 0x06,
                 'ftp://': 0x0D,
                 'ftps://': 0x0E,
-                'sftp://': 0x45,
-                'geo:': 0x1F
+                'geo:': 0x1F,
+                'sms:': 0x00,
+                'facetime://': 0x00,
+                'facetime-audio://': 0x00,
+                'X-HM://': 0x00,
+                'http://maps.apple.com/': 0x03
             };
-
+        
             let payload;
-            let recordType;
-
-            if (type === 'URL' || type === 'SocialMedia') {
-                let prefix = '';
-                let prefixCode = 0x00;
-                for (let key in uriPrefixes) {
-                    if (data.toLowerCase().startsWith(key)) {
-                        prefix = key;
-                        prefixCode = uriPrefixes[key];
-                        break;
-                    }
+            let recordType = 0x55; // 'U' for URI
+            let prefix = '';
+            let prefixCode = 0x00; // Default to no prefix
+        
+            for (let key in uriPrefixes) {
+                if (data.toLowerCase().startsWith(key)) {
+                    prefix = key;
+                    prefixCode = uriPrefixes[key];
+                    break;
                 }
-                if (prefix) {
-                    data = data.slice(prefix.length);
-                }
-                payload = [prefixCode, ...this.helper.string_to_bytes(data)];
-                recordType = 0x55; // 'U' for URI
-            } else if (type === 'Phone') {
-                payload = [uriPrefixes['tel:'], ...this.helper.string_to_bytes(data)];
-                recordType = 0x55; // 'U' for URI
-            } else if (type === 'Text') {
-                payload = [0x02, 0x65, 0x6E, ...this.helper.string_to_bytes(data)]; // 0x02 for UTF-8, 'en' for English
-                recordType = 0x54; // 'T' for Text
-            } else if (type === 'Email') {
-                payload = [uriPrefixes['mailto:'], ...this.helper.string_to_bytes(data)];
-                recordType = 0x55; // 'U' for URI
-            } else if (type === 'Geo') {
-                const prefixCode = uriPrefixes['geo:'];
-                data = data.slice(4); // Remove 'geo:'
-                payload = [prefixCode, ...this.helper.string_to_bytes(data)];
-                recordType = 0x55; // 'U' for URI
-            } else if (type === 'SMS') {
-                const prefixCode = 0x00; // No prefix code
-                payload = [prefixCode, ...this.helper.string_to_bytes(data)];
-                recordType = 0x55; // 'U' for URI
-            } else {
-                throw new Error('Unsupported data type');
             }
-
+        
+            // Only strip the prefix if the prefix code is not 0x00
+            if (prefix && prefixCode !== 0x00) {
+                data = data.slice(prefix.length);
+            }
+        
+            payload = [prefixCode, ...this.helper.string_to_bytes(data)];
+        
             let payloadLength = payload.length;
-
+        
             let ndefHeader = [];
             if (payloadLength < 256) {
                 // Short Record
                 ndefHeader = [
-                    0xD1, // Record Header (MB=1, ME=1, CF=0, SR=1, IL=0, TNF=001)
+                    0xD1, // Record Header
                     0x01, // Type Length
                     payloadLength, // Payload Length
                     recordType // Type
@@ -263,9 +244,9 @@ Pages read: ${this.getNfcPageCount()}`;
             } else {
                 // Normal Record
                 ndefHeader = [
-                    0xC1, // Record Header (MB=1, ME=1, CF=0, SR=0, IL=0, TNF=001)
+                    0xC1, // Record Header
                     0x01, // Type Length
-                    ...[0x00, 0x00, 0x00, 0x00], // Placeholder for 4-byte Payload Length
+                    ...[0x00, 0x00, 0x00, 0x00], // Payload Length placeholder
                     recordType // Type
                 ];
                 let plBytes = [
@@ -276,18 +257,34 @@ Pages read: ${this.getNfcPageCount()}`;
                 ];
                 ndefHeader.splice(2, 4, ...plBytes);
             }
-
-            let ndefMessage = [
-                0x03, // NDEF Message TLV Tag
-                payloadLength + ndefHeader.length + 1, // Length
-                ...ndefHeader,
-                ...payload,
-                0xFE // Terminator TLV
-            ];
-
-            // Write NDEF message to pages starting from page 4
+        
+            let totalLength = ndefHeader.length + payloadLength;
+        
+            let ndefMessage = [];
+        
+            if (totalLength < 255) {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    totalLength, // Length (1 byte)
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            } else {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    0xFF, // Length field extended indicator
+                    (totalLength >> 8) & 0xFF, // Length high byte
+                    totalLength & 0xFF,        // Length low byte
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            }
+        
             this.writeNDEFMessage(ndefMessage);
         }
+        
 
         NDEF_vCard(data) {
             const payload = this.helper.string_to_bytes(data);
@@ -302,13 +299,29 @@ Pages read: ${this.getNfcPageCount()}`;
                 ...typeBytes
             ];
 
-            const ndefMessage = [
-                0x03, // NDEF Message TLV Tag
-                payloadLength + ndefHeader.length + 1, // Length
-                ...ndefHeader,
-                ...payload,
-                0xFE // Terminator TLV
-            ];
+            let totalLength = ndefHeader.length + payloadLength;
+
+            let ndefMessage = [];
+
+            if (totalLength < 255) {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    totalLength, // Length (1 byte)
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            } else {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    0xFF, // Length field extended indicator
+                    (totalLength >> 8) & 0xFF, // Length high byte
+                    totalLength & 0xFF,        // Length low byte
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            }
 
             this.writeNDEFMessage(ndefMessage);
         }
@@ -364,13 +377,29 @@ Pages read: ${this.getNfcPageCount()}`;
                 0x53, 0x70, 0x70 // Type 'S' 'p' 'p' (WPS)
             ];
 
-            const ndefMessage = [
-                0x03, // NDEF Message TLV Tag
-                payloadLength + ndefHeader.length + 1, // Length
-                ...ndefHeader,
-                ...payload,
-                0xFE // Terminator TLV
-            ];
+            let totalLength = ndefHeader.length + payloadLength;
+
+            let ndefMessage = [];
+
+            if (totalLength < 255) {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    totalLength, // Length (1 byte)
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            } else {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    0xFF, // Length field extended indicator
+                    (totalLength >> 8) & 0xFF, // Length high byte
+                    totalLength & 0xFF,        // Length low byte
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            }
 
             this.writeNDEFMessage(ndefMessage);
         }
@@ -379,21 +408,38 @@ Pages read: ${this.getNfcPageCount()}`;
             const payload = this.helper.string_to_bytes(packageName);
             const payloadLength = payload.length;
             const typeBytes = this.helper.string_to_bytes('android.com:pkg');
+            const typeLength = typeBytes.length;
 
             const ndefHeader = [
                 0xD4, // MB=1, ME=1, CF=0, SR=1, IL=0, TNF=100 (External type)
-                typeBytes.length, // Type Length
+                typeLength, // Type Length
                 payloadLength, // Payload Length
                 ...typeBytes
             ];
 
-            const ndefMessage = [
-                0x03, // NDEF Message TLV Tag
-                payloadLength + ndefHeader.length + 1, // Length
-                ...ndefHeader,
-                ...payload,
-                0xFE // Terminator TLV
-            ];
+            let totalLength = ndefHeader.length + payloadLength;
+
+            let ndefMessage = [];
+
+            if (totalLength < 255) {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    totalLength, // Length (1 byte)
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            } else {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    0xFF, // Length field extended indicator
+                    (totalLength >> 8) & 0xFF, // Length high byte
+                    totalLength & 0xFF,        // Length low byte
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            }
 
             this.writeNDEFMessage(ndefMessage);
         }
@@ -413,16 +459,33 @@ Pages read: ${this.getNfcPageCount()}`;
                 ...typeBytes
             ];
 
-            const ndefMessage = [
-                0x03, // NDEF Message TLV Tag
-                payloadLength + ndefHeader.length + 1, // Length
-                ...ndefHeader,
-                ...payload,
-                0xFE // Terminator TLV
-            ];
+            let totalLength = ndefHeader.length + payloadLength;
+
+            let ndefMessage = [];
+
+            if (totalLength < 255) {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    totalLength, // Length (1 byte)
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            } else {
+                ndefMessage = [
+                    0x03, // NDEF Message TLV Tag
+                    0xFF, // Length field extended indicator
+                    (totalLength >> 8) & 0xFF, // Length high byte
+                    totalLength & 0xFF,        // Length low byte
+                    ...ndefHeader,
+                    ...payload,
+                    0xFE // Terminator TLV
+                ];
+            }
 
             this.writeNDEFMessage(ndefMessage);
         }
+
 
         writeNDEFMessage(ndefMessage) {
             let pageIndex = 4;
@@ -444,13 +507,16 @@ Pages read: ${this.getNfcPageCount()}`;
                 byteIndex++;
             }
         }
-
         generatePages() {
-            return this.nfcPages.map((page, index) =>
-                `Page ${index}: ${page.map(byte => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')}`
-            ).join('\n');
+            return this.nfcPages
+                .map(
+                    (page, index) =>
+                        `Page ${index}: ${page
+                            .map(byte => byte.toString(16).padStart(2, '0').toUpperCase())
+                            .join(' ')}`
+                )
+                .join('\n');
         }
-
         setEndPages() {
             // Set specific end pages based on tag type
             const endPages = {
@@ -483,10 +549,10 @@ Pages read: ${this.getNfcPageCount()}`;
             }
         }
 
-        generate_TAG_URL(data, type = 'URL') {
+        generate_TAG_URL(data) {
             this.nfcUID = this.generateUID();
             this.generate();
-            this.NDEF_URI_URL(data, type);
+            this.NDEF_URI_URL(data);
             this.setEndPages();
         }
 
@@ -534,6 +600,13 @@ Pages read: ${this.getNfcPageCount()}`;
         // Collect data based on selected type
         if (selectedType === 'URL' || selectedType === 'SocialMedia') {
             inputData = inputs.urlInput.value.trim();
+        } else if (selectedType === 'FaceTime' || selectedType === 'FaceTimeAudio') {
+            inputData = `${selectedType.toLowerCase()}://${inputs.facetimeInput.value.trim()}`;
+        } else if (selectedType === 'AppleMaps') {
+            const address = inputs.addressInput.value.trim();
+            inputData = `http://maps.apple.com/?address=${encodeURIComponent(address)}`;
+        } else if (selectedType === 'HomeKit') {
+            inputData = `X-HM://${inputs.homeKitCodeInput.value.trim()}`;
         } else if (selectedType === 'Text') {
             inputData = inputs.textInput.value.trim();
         } else if (selectedType === 'Phone') {
@@ -567,7 +640,6 @@ Pages read: ${this.getNfcPageCount()}`;
             alert('Please enter data');
             return;
         }
-
         // Input validation
         if (!isValidInput(selectedType, inputData)) {
             alert('Input contains invalid characters or is improperly formatted.');
@@ -576,22 +648,32 @@ Pages read: ${this.getNfcPageCount()}`;
 
         try {
             const nfcTag = new nfcNTAG(selectedTagType);
-            if (selectedType === 'WiFi') {
-                nfcTag.generate_TAG_WiFi(inputData);
-            } else if (selectedType === 'Contact') {
-                nfcTag.generate_TAG_vCard(inputData);
-            } else if (selectedType === 'Geo') {
-                nfcTag.generate_TAG_URL(inputData, 'Geo');
-            } else if (selectedType === 'SMS') {
-                nfcTag.generate_TAG_URL(inputData, 'SMS');
-            } else if (selectedType === 'LaunchApp') {
-                nfcTag.generate_TAG_AAR(inputData);
-            } else if (selectedType === 'CustomMIME') {
-                nfcTag.generate_TAG_CustomMIME(inputData);
-            } else if (selectedType === 'SocialMedia') {
-                nfcTag.generate_TAG_URL(inputData, 'URL');
+            if (
+                selectedType === 'FaceTime' ||
+                selectedType === 'FaceTimeAudio' ||
+                selectedType === 'AppleMaps' ||
+                selectedType === 'HomeKit'
+            ) {
+                nfcTag.generate_TAG_URL(inputData);
             } else {
-                nfcTag.generate_TAG_URL(inputData, selectedType);
+                // ... (Existing logic)
+                if (selectedType === 'WiFi') {
+                    nfcTag.generate_TAG_WiFi(inputData);
+                } else if (selectedType === 'Contact') {
+                    nfcTag.generate_TAG_vCard(inputData);
+                } else if (selectedType === 'Geo') {
+                    nfcTag.generate_TAG_URL(inputData);
+                } else if (selectedType === 'SMS') {
+                    nfcTag.generate_TAG_URL(inputData);
+                } else if (selectedType === 'LaunchApp') {
+                    nfcTag.generate_TAG_AAR(inputData);
+                } else if (selectedType === 'CustomMIME') {
+                    nfcTag.generate_TAG_CustomMIME(inputData);
+                } else if (selectedType === 'SocialMedia') {
+                    nfcTag.generate_TAG_URL(inputData);
+                } else {
+                    nfcTag.generate_TAG_URL(inputData);
+                }
             }
 
             const nfcData = nfcTag.exportData();
@@ -603,7 +685,6 @@ Pages read: ${this.getNfcPageCount()}`;
             console.error(error);
         }
     }
-
     function isValidInput(type, data) {
         if (type === 'Email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -634,9 +715,22 @@ Pages read: ${this.getNfcPageCount()}`;
             const [mimeType] = data.split('\n');
             const mimeRegex = /^[\w\-]+\/[\w\-]+$/;
             return mimeRegex.test(mimeType);
+        } else if (type === 'FaceTime' || type === 'FaceTimeAudio') {
+            // Remove scheme and validate email or phone
+            const input = data.replace(/(facetime:\/\/|facetime-audio:\/\/)/i, '');
+            const emailOrPhoneRegex = /^([^\s@]+@[^\s@]+\.[^\s@]+|\+?\d{7,15})$/;
+            return emailOrPhoneRegex.test(input);
+        } else if (type === 'AppleMaps') {
+            // Ensure that the address is provided
+            return data.trim().length > 0;
+        } else if (type === 'HomeKit') {
+            // Validate HomeKit code (alphanumeric, length between 1 and 64)
+            const homeKitRegex = /^[A-Za-z0-9]{1,64}$/;
+            return homeKitRegex.test(data);
         }
         return false;
     }
+    
 
     function downloadNFCFile() {
         const nfcData = nfcDataOutput.textContent;
