@@ -5,8 +5,8 @@
 :root {
     /* Color Scheme */
     --primary-color: #FF6C00;      /* Accent color (Flipper Orange) */
-    --background-color: #121212;   /* Dark background */
-    --surface-color: #1E1E1E;      /* Surface elements */
+    --background-color: #000000;   /* Dark background */
+    --surface-color: #000000;      /* Surface elements */
     --text-color: #FFFFFF;         /* Primary text color */
     --secondary-text-color: #B3B3B3; /* Secondary text color */
     --border-color: #333333;       /* Border color */
@@ -71,10 +71,17 @@ header h1 {
     overflow: hidden;
     background: linear-gradient(90deg, var(--primary-color), #FF9D00);
     background-size: 200%;
+    margin-top: 40px;
     animation: gradient-animation 5s ease infinite;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.glitch-image {
+    max-width: 100%;
+    height: auto;
+    margin-left: -372px;
+  }
 
 @keyframes gradient-animation {
     0% {
@@ -172,7 +179,7 @@ input:focus, select:focus {
 }
 
 #nfcData {
-    background-color: #2A2A2A;
+    background-color: #000000;
     padding: 1.5rem;
     border-radius: 8px;
     font-family: monospace;
@@ -239,7 +246,12 @@ footer .btn {
     .container {
         padding: 15px;
     }
-
+    .glitch-image {
+        max-width: 100%;
+        height: auto;
+        margin-left: -168px;
+        margin-bottom: -140px;
+    }
     header h1 {
         font-size: 1.5rem;
         margin-top: 3.5rem;
