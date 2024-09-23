@@ -32,6 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
         homeKitCodeInput: document.getElementById('homeKitCodeInput')
     };
 
+    let lastInputData = ''; // Store the last input data globally
+
+    function sanitizeFilename(name) {
+        return name.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
+    }
+
     function showRelevantInputs() {
         const selectedType = tagTypeSelect.value;
 
@@ -209,12 +215,12 @@ Pages read: ${this.getNfcPageCount()}`;
                 'X-HM://': 0x00,
                 'http://maps.apple.com/': 0x03
             };
-        
+
             let payload;
             let recordType = 0x55; // 'U' for URI
             let prefix = '';
             let prefixCode = 0x00; // Default to no prefix
-        
+
             for (let key in uriPrefixes) {
                 if (data.toLowerCase().startsWith(key)) {
                     prefix = key;
@@ -222,16 +228,16 @@ Pages read: ${this.getNfcPageCount()}`;
                     break;
                 }
             }
-        
+
             // Only strip the prefix if the prefix code is not 0x00
             if (prefix && prefixCode !== 0x00) {
                 data = data.slice(prefix.length);
             }
-        
+
             payload = [prefixCode, ...this.helper.string_to_bytes(data)];
-        
+
             let payloadLength = payload.length;
-        
+
             let ndefHeader = [];
             if (payloadLength < 256) {
                 // Short Record
@@ -257,11 +263,11 @@ Pages read: ${this.getNfcPageCount()}`;
                 ];
                 ndefHeader.splice(2, 4, ...plBytes);
             }
-        
+
             let totalLength = ndefHeader.length + payloadLength;
-        
+
             let ndefMessage = [];
-        
+
             if (totalLength < 255) {
                 ndefMessage = [
                     0x03, // NDEF Message TLV Tag
@@ -281,10 +287,9 @@ Pages read: ${this.getNfcPageCount()}`;
                     0xFE // Terminator TLV
                 ];
             }
-        
+
             this.writeNDEFMessage(ndefMessage);
         }
-        
 
         NDEF_vCard(data) {
             const payload = this.helper.string_to_bytes(data);
@@ -486,7 +491,6 @@ Pages read: ${this.getNfcPageCount()}`;
             this.writeNDEFMessage(ndefMessage);
         }
 
-
         writeNDEFMessage(ndefMessage) {
             let pageIndex = 4;
             let byteIndex = 0;
@@ -646,6 +650,8 @@ Pages read: ${this.getNfcPageCount()}`;
             return;
         }
 
+        lastInputData = inputData; // Store inputData globally
+
         try {
             const nfcTag = new nfcNTAG(selectedTagType);
             if (
@@ -656,7 +662,6 @@ Pages read: ${this.getNfcPageCount()}`;
             ) {
                 nfcTag.generate_TAG_URL(inputData);
             } else {
-                // ... (Existing logic)
                 if (selectedType === 'WiFi') {
                     nfcTag.generate_TAG_WiFi(inputData);
                 } else if (selectedType === 'Contact') {
@@ -685,6 +690,7 @@ Pages read: ${this.getNfcPageCount()}`;
             console.error(error);
         }
     }
+
     function isValidInput(type, data) {
         if (type === 'Email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -730,20 +736,26 @@ Pages read: ${this.getNfcPageCount()}`;
         }
         return false;
     }
-    
 
     function downloadNFCFile() {
         const nfcData = nfcDataOutput.textContent;
-        const blob = new Blob([nfcData], { type: 'text/plain' });
+        const blob = new Blob([nfcData], { type: 'application/octet-stream' }); // Changed MIME type
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
 
         let filename = 'nfc_tag';
+        const selectedType = tagTypeSelect.value;
 
-        // Use the selected tag type as part of the filename
-        const tagType = tagTypeSelect.value;
-        filename = `nfc_${tagType.toLowerCase()}`;
+        if (lastInputData) {
+            const sanitizedInputData = sanitizeFilename(lastInputData);
+            filename = `nfc_${selectedType.toLowerCase()}_${sanitizedInputData}`;
+            if (filename.length > 50) {
+                filename = filename.substring(0, 50);
+            }
+        } else {
+            filename = `nfc_${selectedType.toLowerCase()}`;
+        }
 
         a.download = `${filename}.nfc`;
         document.body.appendChild(a);
