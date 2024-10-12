@@ -1,39 +1,36 @@
-/* Import a modern, clean font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Root variables for colors, fonts, and other design elements */
+/* Default (light theme) */
 :root {
-    /* Color Scheme */
-    --primary-color: #FF6C00;      /* Accent color (Flipper Orange) */
-    --background-color: #000000;   /* Dark background */
-    --surface-color: #000000;      /* Surface elements */
-    --text-color: #FFFFFF;         /* Primary text color */
-    --secondary-text-color: #B3B3B3; /* Secondary text color */
-    --border-color: #333333;       /* Border color */
-    --input-background: #1E1E1E;   /* Input fields background */
-    --input-border: #2C2C2C;       /* Input fields border */
-    --input-focus-border: var(--primary-color);
-    --mobile-container-padding: 15px;
-    --mobile-input-padding: 12px;
-    --mobile-button-padding: 12px 20px;
-
-    /* Shadows and Effects */
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+    --primary-color: #FF6C00;
+    --primary-hover: #FF8C3D;
+    --background-color: #FFFFFF;
+    --surface-color: #F0F0F0;
+    --text-color: #000000;
+    --secondary-text-color: #555555;
+    --border-color: #CCCCCC;
+    --input-background: #FFFFFF;
+    --input-border: #BBBBBB;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --transition-speed: 0.3s;
-
-    /* Font */
     --font-family: 'Inter', sans-serif;
-
-    /* Spacing */
-    --container-padding: 20px;
-    --input-padding: 15px;
-    --button-padding: 15px 30px;
-
-    /* Breakpoints */
-    --desktop-width: 1024px;
+    --container-padding: 24px;
+    --input-padding: 12px 16px;
+    --button-padding: 12px 24px;
 }
 
-/* Global Styles */
+/* Dark theme */
+body.dark-theme {
+    --background-color: #0D0D0D;
+    --surface-color: #1A1A1A;
+    --text-color: #FFFFFF;
+    --secondary-text-color: #B3B3B3;
+    --border-color: #2C2C2C;
+    --input-background: #262626;
+    --input-border: #3D3D3D;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -46,6 +43,7 @@ body {
     color: var(--text-color);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 .container {
@@ -59,44 +57,43 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 2rem;
-}
-
-header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    position: relative;
-    display: inline-block;
-    overflow: hidden;
-    background: linear-gradient(90deg, var(--primary-color), #FF9D00);
-    background-size: 200%;
-    margin-top: 40px;
-    animation: gradient-animation 5s ease infinite;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    margin-bottom: 2.5rem;
 }
 
 .glitch-image {
     max-width: 100%;
     height: auto;
     margin-left: -372px;
-  }
+    margin-bottom: -80px;
+    /* Invert the image in light mode */
+    filter: invert(1);
+}
+
+/* In dark mode, do not invert the image */
+body.dark-theme .glitch-image {
+    filter: none;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--primary-color), #FF9D00);
+    background-size: 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-animation 5s ease infinite;
+}
 
 @keyframes gradient-animation {
-    0% {
-        background-position: 0%;
-    }
-    100% {
-        background-position: 200%;
-    }
+    0% { background-position: 0%; }
+    100% { background-position: 200%; }
 }
 
 main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 2rem;
 }
 
 .input-group {
@@ -106,12 +103,14 @@ main {
 label {
     display: block;
     margin-bottom: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--secondary-text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-input, select {
+input, select, textarea {
     width: 100%;
     padding: var(--input-padding);
     background-color: var(--input-background);
@@ -119,16 +118,16 @@ input, select {
     border-radius: 8px;
     color: var(--text-color);
     font-size: 1rem;
-    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
 }
 
-input::placeholder {
+input::placeholder, textarea::placeholder {
     color: var(--secondary-text-color);
 }
 
-input:focus, select:focus {
-    border-color: var(--input-focus-border);
-    box-shadow: 0 0 0 3px rgba(255, 108, 0, 0.3);
+input:focus, select:focus, textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 108, 0, 0.2);
     outline: none;
 }
 
@@ -140,7 +139,7 @@ input:focus, select:focus {
     border: none;
     border-radius: 8px;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     text-align: center;
     transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
@@ -148,48 +147,49 @@ input:focus, select:focus {
 }
 
 .btn:hover {
-    background-color: #FF7F26;
+    background-color: var(--primary-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 6px 12px rgba(255, 108, 0, 0.2);
 }
 
 .btn:active {
     transform: translateY(0);
-    box-shadow: var(--box-shadow);
 }
 
 #generateButton {
     width: 100%;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
 }
 
 #outputSection {
     margin-top: 3rem;
     background-color: var(--surface-color);
     padding: 2rem;
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: var(--box-shadow);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 #outputSection h2 {
     font-size: 1.8rem;
     font-weight: 600;
     color: var(--primary-color);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 #nfcData {
-    background-color: #000000;
+    background-color: var(--input-background);
     padding: 1.5rem;
     border-radius: 8px;
-    font-family: monospace;
-    font-size: 0.95rem;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
     color: var(--text-color);
     white-space: pre-wrap;
     word-break: break-word;
     max-height: 400px;
     overflow-y: auto;
     border: 1px solid var(--border-color);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 #downloadButton {
@@ -199,62 +199,70 @@ input:focus, select:focus {
 
 footer {
     text-align: center;
-    padding: 1rem 0;
+    padding: 1.5rem 0;
     margin-top: auto;
 }
 
-footer .btn {
-    width: auto;
-    padding: 10px 20px;
-    font-size: 0.95rem;
+footer .theme-toggle {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+footer .theme-toggle:hover {
+    background-color: var(--primary-color);
+    color: var(--text-color);
 }
 
 .hidden {
     display: none;
 }
 
-/* Tooltip for buttons (e.g., Theme Toggle) */
-.tooltip {
-    position: relative;
-    display: inline-block;
-}
-
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    background-color: var(--surface-color);
-    color: var(--text-color);
-    text-align: center;
-    border-radius: 4px;
-    padding: 8px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%; /* Adjust as needed */
-    left: 50%;
-    margin-left: -60px; /* Half of tooltip width */
-    opacity: 0;
-    transition: opacity var(--transition-speed);
-    font-size: 0.85rem;
-}
-
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-}
-
 @media screen and (max-width: 768px) {
     .container {
-        padding: 15px;
+        padding: 16px;
     }
+
     .glitch-image {
-        max-width: 100%;
-        height: auto;
         margin-left: -168px;
-        margin-bottom: -140px;
+        margin-bottom: -60px;
     }
+
     header h1 {
-        font-size: 1.5rem;
-        margin-top: 3.5rem;
+        font-size: 2rem;
+    }
+
+    .input-group {
+        margin-bottom: 1.2rem;
+    }
+
+    input, select, textarea {
+        padding: 10px 14px;
+    }
+
+    #outputSection {
+        padding: 1.5rem;
+    }
+
+    #nfcData {
+        font-size: 0.85rem;
+        padding: 1.2rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    header h1 {
+        font-size: 1.7rem;
+    }
+
+    .glitch-image {
+        margin-left: -100px;
+        margin-bottom: -40px;
     }
 
     .input-group {
@@ -262,73 +270,34 @@ footer .btn {
     }
 
     label {
+        font-size: 0.8rem;
+    }
+
+    input, select, textarea {
+        padding: 8px 12px;
         font-size: 0.9rem;
-        margin-bottom: 0.3rem;
     }
 
-    input, select {
-        padding: 10px;
-        font-size: 0.9rem;
-    }
-
-    #generateButton {
-        margin-top: 1.5rem;
-        padding: 12px;
-        font-size: 1rem;
-    }
-
-    #outputSection {
-        margin-top: 2rem;
-        padding: 1rem;
+    #generateButton, #downloadButton {
+        padding: 10px 20px;
+        font-size: 0.95rem;
     }
 
     #outputSection h2 {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
     }
 
     #nfcData {
         font-size: 0.8rem;
         padding: 1rem;
-        max-height: 200px;
-    }
-
-    #downloadButton {
-        margin-top: 1rem;
-        padding: 10px;
-        font-size: 0.9rem;
-    }
-
-    footer {
-        margin-top: 2rem;
-    }
-
-    footer .btn {
-        padding: 8px 15px;
-        font-size: 0.8rem;
     }
 }
 
-@media screen and (max-width: 480px) {
-    header h1 {
-        font-size: 1.3rem;
-    }
+/* Smooth transition for theme change */
+body {
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
 
-    .input-group {
-        margin-bottom: 0.8rem;
-    }
-
-    label {
-        font-size: 0.85rem;
-    }
-
-    input, select {
-        padding: 8px;
-        font-size: 0.85rem;
-    }
-
-    #generateButton {
-        margin-top: 1.2rem;
-        padding: 10px;
-        font-size: 0.9rem;
-    }
+input, select, textarea, .btn, #outputSection, #nfcData {
+    transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
 }

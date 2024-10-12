@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const outputSection = document.getElementById('outputSection');
     const nfcDataOutput = document.getElementById('nfcData');
     const downloadButton = document.getElementById('downloadButton');
-    const themeToggle = document.getElementById('themeToggle');
 
     const inputFieldsContainer = document.getElementById('inputFields');
     const allInputGroups = inputFieldsContainer.querySelectorAll('.data-field');
@@ -209,32 +208,20 @@ Pages read: ${this.getNfcPageCount()}`;
                 'ftp://': 0x0D,
                 'ftps://': 0x0E,
                 'geo:': 0x1F,
-                'sms:': 0x00,
-                'facetime://': 0x00,
-                'facetime-audio://': 0x00,
-                'X-HM://': 0x00,
-                'http://maps.apple.com/': 0x03
+                // Custom schemes will use prefix code 0x00
             };
 
-            let payload;
-            let recordType = 0x55; // 'U' for URI
-            let prefix = '';
             let prefixCode = 0x00; // Default to no prefix
 
             for (let key in uriPrefixes) {
                 if (data.toLowerCase().startsWith(key)) {
-                    prefix = key;
                     prefixCode = uriPrefixes[key];
+                    data = data.slice(key.length);
                     break;
                 }
             }
 
-            // Only strip the prefix if the prefix code is not 0x00
-            if (prefix && prefixCode !== 0x00) {
-                data = data.slice(prefix.length);
-            }
-
-            payload = [prefixCode, ...this.helper.string_to_bytes(data)];
+            let payload = [prefixCode, ...this.helper.string_to_bytes(data)];
 
             let payloadLength = payload.length;
 
@@ -245,7 +232,7 @@ Pages read: ${this.getNfcPageCount()}`;
                     0xD1, // Record Header
                     0x01, // Type Length
                     payloadLength, // Payload Length
-                    recordType // Type
+                    0x55 // Type
                 ];
             } else {
                 // Normal Record
@@ -253,7 +240,7 @@ Pages read: ${this.getNfcPageCount()}`;
                     0xC1, // Record Header
                     0x01, // Type Length
                     ...[0x00, 0x00, 0x00, 0x00], // Payload Length placeholder
-                    recordType // Type
+                    0x55 // Type
                 ];
                 let plBytes = [
                     (payloadLength >>> 24) & 0xFF,
@@ -346,7 +333,14 @@ Pages read: ${this.getNfcPageCount()}`;
             // Build the Wi-Fi Credential according to Wi-Fi Alliance specification
             const ssidBytes = this.helper.string_to_bytes(params.SSID);
             const passwordBytes = this.helper.string_to_bytes(params.PASSWORD);
-            const authType = params.AUTH.toUpperCase() === 'WPA' ? [0x00, 0x02] : [0x00, 0x01]; // WPA or WEP
+            let authType;
+            if (params.AUTH.toUpperCase() === 'WPA') {
+                authType = [0x00, 0x02];
+            } else if (params.AUTH.toUpperCase() === 'WEP') {
+                authType = [0x00, 0x01];
+            } else {
+                authType = [0x00, 0x00]; // None
+            }
 
             const credential = [
                 // Credential TLV
@@ -604,19 +598,24 @@ Pages read: ${this.getNfcPageCount()}`;
         // Collect data based on selected type
         if (selectedType === 'URL' || selectedType === 'SocialMedia') {
             inputData = inputs.urlInput.value.trim();
-        } else if (selectedType === 'FaceTime' || selectedType === 'FaceTimeAudio') {
-            inputData = `${selectedType.toLowerCase()}://${inputs.facetimeInput.value.trim()}`;
+        } else if (selectedType === 'FaceTime') {
+            const userId = inputs.facetimeInput.value.trim();
+            inputData = `facetime://${encodeURIComponent(userId)}`;
+        } else if (selectedType === 'FaceTimeAudio') {
+            const userId = inputs.facetimeInput.value.trim();
+            inputData = `facetime-audio://${encodeURIComponent(userId)}`;
         } else if (selectedType === 'AppleMaps') {
             const address = inputs.addressInput.value.trim();
             inputData = `http://maps.apple.com/?address=${encodeURIComponent(address)}`;
         } else if (selectedType === 'HomeKit') {
-            inputData = `X-HM://${inputs.homeKitCodeInput.value.trim()}`;
+            const homeKitCode = inputs.homeKitCodeInput.value.trim();
+            inputData = `X-HM://${encodeURIComponent(homeKitCode)}`;
         } else if (selectedType === 'Text') {
             inputData = inputs.textInput.value.trim();
         } else if (selectedType === 'Phone') {
-            inputData = inputs.phoneInput.value.trim();
+            inputData = `tel:${inputs.phoneInput.value.trim()}`;
         } else if (selectedType === 'Email') {
-            inputData = inputs.emailInput.value.trim();
+            inputData = `mailto:${inputs.emailInput.value.trim()}`;
         } else if (selectedType === 'WiFi') {
             const ssid = inputs.ssidInput.value.trim();
             const password = inputs.passwordInput.value.trim();
@@ -666,16 +665,18 @@ Pages read: ${this.getNfcPageCount()}`;
                     nfcTag.generate_TAG_WiFi(inputData);
                 } else if (selectedType === 'Contact') {
                     nfcTag.generate_TAG_vCard(inputData);
-                } else if (selectedType === 'Geo') {
-                    nfcTag.generate_TAG_URL(inputData);
-                } else if (selectedType === 'SMS') {
+                } else if (
+                    selectedType === 'Geo' ||
+                    selectedType === 'SMS' ||
+                    selectedType === 'SocialMedia' ||
+                    selectedType === 'Phone' ||
+                    selectedType === 'Email'
+                ) {
                     nfcTag.generate_TAG_URL(inputData);
                 } else if (selectedType === 'LaunchApp') {
                     nfcTag.generate_TAG_AAR(inputData);
                 } else if (selectedType === 'CustomMIME') {
                     nfcTag.generate_TAG_CustomMIME(inputData);
-                } else if (selectedType === 'SocialMedia') {
-                    nfcTag.generate_TAG_URL(inputData);
                 } else {
                     nfcTag.generate_TAG_URL(inputData);
                 }
@@ -694,10 +695,10 @@ Pages read: ${this.getNfcPageCount()}`;
     function isValidInput(type, data) {
         if (type === 'Email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(data);
+            return emailRegex.test(data.replace(/^mailto:/, ''));
         } else if (type === 'Phone') {
             const phoneRegex = /^\+?\d{7,15}$/;
-            return phoneRegex.test(data);
+            return phoneRegex.test(data.replace(/^tel:/, ''));
         } else if (type === 'URL' || type === 'SocialMedia') {
             const urlRegex = /^(https?:\/\/)?([^\s$.?#].[^\s]*)$/i;
             return urlRegex.test(data);
@@ -723,7 +724,7 @@ Pages read: ${this.getNfcPageCount()}`;
             return mimeRegex.test(mimeType);
         } else if (type === 'FaceTime' || type === 'FaceTimeAudio') {
             // Remove scheme and validate email or phone
-            const input = data.replace(/(facetime:\/\/|facetime-audio:\/\/)/i, '');
+            const input = decodeURIComponent(data.replace(/(facetime:\/\/|facetime-audio:\/\/)/i, ''));
             const emailOrPhoneRegex = /^([^\s@]+@[^\s@]+\.[^\s@]+|\+?\d{7,15})$/;
             return emailOrPhoneRegex.test(input);
         } else if (type === 'AppleMaps') {
@@ -732,14 +733,14 @@ Pages read: ${this.getNfcPageCount()}`;
         } else if (type === 'HomeKit') {
             // Validate HomeKit code (alphanumeric, length between 1 and 64)
             const homeKitRegex = /^[A-Za-z0-9]{1,64}$/;
-            return homeKitRegex.test(data);
+            return homeKitRegex.test(data.replace(/^X-HM:\/\//, ''));
         }
         return false;
     }
 
     function downloadNFCFile() {
         const nfcData = nfcDataOutput.textContent;
-        const blob = new Blob([nfcData], { type: 'application/octet-stream' }); // Changed MIME type
+        const blob = new Blob([nfcData], { type: 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -764,14 +765,32 @@ Pages read: ${this.getNfcPageCount()}`;
         URL.revokeObjectURL(url);
     }
 
-    function toggleTheme() {
-        document.body.classList.toggle('dark-theme');
-    }
-
     tagTypeSelect.addEventListener('change', showRelevantInputs);
     generateButton.addEventListener('click', generateNFCData);
     downloadButton.addEventListener('click', downloadNFCFile);
-    themeToggle.addEventListener('click', toggleTheme);
 
     showRelevantInputs();
+});
+
+// Theme toggle functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+
+    // Check for saved theme preference or default to dark theme
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        body.classList.remove('dark-theme');
+        themeToggle.textContent = 'Dark Mode';
+    } else {
+        body.classList.add('dark-theme');
+        themeToggle.textContent = 'Light Mode';
+    }
+
+    themeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-theme');
+        const theme = body.classList.contains('dark-theme') ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+        themeToggle.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    });
 });

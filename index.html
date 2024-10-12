@@ -6,17 +6,6 @@
     <link href="styles.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-    
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NKXZVMQ34Z"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-NKXZVMQ34Z');
-</script>
-
 <body>
     <div class="container">
         <header>
@@ -47,35 +36,43 @@
                     <option value="SMS">SMS Message [iOS, Android]</option>
                     <option value="LaunchApp">Launch Application [Android]</option>
                     <option value="CustomMIME">Custom MIME Type [Android]</option>
-                    <option value="SocialMedia">Social Media Link [iOS, Android]</option>                    <!-- New iOS-specific options -->
-<!--                <option value="FaceTime">FaceTime [iOS]</option>
+                    <option value="SocialMedia">Social Media Link [iOS, Android]</option>
+                    <!-- New iOS-specific options -->
+                    <option value="FaceTime">FaceTime [iOS]</option>
                     <option value="FaceTimeAudio">FaceTime Audio [iOS]</option>
                     <option value="AppleMaps">Apple Maps [iOS]</option>
-                    <option value="HomeKit">HomeKit Setup [iOS]</option> -->
+                    <option value="HomeKit">HomeKit Setup [iOS]</option>
+
                 </select>
             </div>
 
             <!-- Dynamic Input Fields -->
             <div id="inputFields">
+                <!-- FaceTime Input -->
+                <div class="input-group data-field" data-type="FaceTime FaceTimeAudio">
+                    <label for="facetimeInput">User Identifier (Email or Phone)</label>
+                    <input id="facetimeInput" type="text" placeholder="user@example.com">
+                </div>
+
+                <!-- Apple Maps Input -->
+                <div class="input-group data-field" data-type="AppleMaps">
+                    <label for="addressInput">Address</label>
+                    <input id="addressInput" type="text" placeholder="Apple Park, Cupertino, CA">
+                </div>
+
+                <!-- HomeKit Input -->
+                <div class="input-group data-field" data-type="HomeKit">
+                    <label for="homeKitCodeInput">HomeKit Code</label>
+                    <input id="homeKitCodeInput" type="text" placeholder="12345678">
+                </div>
+
+
                 <!-- URL Input -->
                 <div class="input-group data-field" data-type="URL SocialMedia">
                     <label for="urlInput">URL</label>
                     <input id="urlInput" type="text" placeholder="https://example.com">
                 </div>
 
-<!--                 <div class="input-group data-field" data-type="FaceTime FaceTimeAudio">
-                    <label for="facetimeInput">User Identifier (Email or Phone)</label>
-                    <input id="facetimeInput" type="text" placeholder="user@example.com">
-                </div>
-                <div class="input-group data-field" data-type="AppleMaps">
-                    <label for="addressInput">Address</label>
-                    <input id="addressInput" type="text" placeholder="Apple Park, Cupertino, CA">
-                </div>
-                <div class="input-group data-field" data-type="HomeKit">
-                    <label for="homeKitCodeInput">HomeKit Code</label>
-                    <input id="homeKitCodeInput" type="text" placeholder="12345">
-                </div>
- -->
                 <!-- Text Input -->
                 <div class="input-group data-field" data-type="Text">
                     <label for="textInput">Text</label>
@@ -165,7 +162,7 @@
         </main>
 
         <footer>
-            <button id="themeToggle" class="btn btn-small">Toggle Theme</button>
+            <button id="themeToggle" class="theme-toggle">Light Mode</button>
         </footer>
     </div>
 
