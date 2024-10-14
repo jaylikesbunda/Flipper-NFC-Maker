@@ -4,12 +4,12 @@
 :root {
     --primary-color: #FF6C00;
     --primary-hover: #FF8C3D;
-    --background-color: #FFFFFF;
-    --surface-color: #F0F0F0;
+    --background-color: rgba(255, 255, 255, 0.8);
+    --surface-color: rgba(240, 240, 240, 0.9);
     --text-color: #000000;
     --secondary-text-color: #555555;
     --border-color: #CCCCCC;
-    --input-background: #FFFFFF;
+    --input-background: rgba(255, 255, 255, 0.9);
     --input-border: #BBBBBB;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --transition-speed: 0.3s;
@@ -21,12 +21,12 @@
 
 /* Dark theme */
 body.dark-theme {
-    --background-color: #0D0D0D;
-    --surface-color: #1A1A1A;
+    --background-color: rgba(13, 13, 13, 0.8);
+    --surface-color: rgba(26, 26, 26, 0.9);
     --text-color: #FFFFFF;
     --secondary-text-color: #B3B3B3;
     --border-color: #2C2C2C;
-    --input-background: #262626;
+    --input-background: rgba(38, 38, 38, 0.9);
     --input-border: #3D3D3D;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -39,11 +39,19 @@ body.dark-theme {
 
 body {
     font-family: var(--font-family);
-    background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    transition: background-color var(--transition-speed), color var(--transition-speed);
+    transition: color var(--transition-speed);
+}
+
+#bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
 }
 
 .container {
@@ -53,6 +61,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    transition: background-color var(--transition-speed);
 }
 
 header {
@@ -71,7 +80,12 @@ header {
 
 /* In dark mode, do not invert the image */
 body.dark-theme .glitch-image {
-    filter: none;
+    max-width: 100%;
+    height: auto;
+    margin-left: -372px;
+    margin-bottom: -80px;
+    /* Invert the image in light mode */
+    filter: invert(1);
 }
 
 header h1 {
@@ -295,7 +309,7 @@ footer .theme-toggle:hover {
 
 /* Smooth transition for theme change */
 body {
-    transition: background-color var(--transition-speed), color var(--transition-speed);
+    transition: color var(--transition-speed);
 }
 
 input, select, textarea, .btn, #outputSection, #nfcData {
