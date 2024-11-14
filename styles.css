@@ -315,3 +315,31 @@ body {
 input, select, textarea, .btn, #outputSection, #nfcData {
     transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
 }
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.button-group .btn {
+    flex: 1;
+}
+
+.btn.sending {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.send-status {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.send-status.error {
+    color: #ff4444;
+}
+
+.send-status.success {
+    color: #00c853;
+}

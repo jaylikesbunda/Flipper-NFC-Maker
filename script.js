@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let lastInputData = ''; // Store the last input data globally
+    let flipperSerial = null;
 
     function sanitizeFilename(name) {
         return name.replace(/[^a-z0-9_\-]/gi, '_').toLowerCase();
@@ -592,9 +593,9 @@ Pages read: ${this.getNfcPageCount()}`;
     function generateNFCData() {
         const selectedType = tagTypeSelect.value;
         const selectedTagType = nfcTagTypeSelect.value;
-
+    
         let inputData = '';
-
+    
         // Collect data based on selected type
         if (selectedType === 'URL' || selectedType === 'SocialMedia') {
             inputData = inputs.urlInput.value.trim();
@@ -638,7 +639,7 @@ Pages read: ${this.getNfcPageCount()}`;
             const data = inputs.mimeDataInput.value.trim();
             inputData = `${mimeType}\n${data}`;
         }
-
+    
         if (!inputData) {
             alert('Please enter data');
             return;
@@ -648,9 +649,9 @@ Pages read: ${this.getNfcPageCount()}`;
             alert('Input contains invalid characters or is improperly formatted.');
             return;
         }
-
+    
         lastInputData = inputData; // Store inputData globally
-
+    
         try {
             const nfcTag = new nfcNTAG(selectedTagType);
             if (
@@ -681,17 +682,110 @@ Pages read: ${this.getNfcPageCount()}`;
                     nfcTag.generate_TAG_URL(inputData);
                 }
             }
-
+    
             const nfcData = nfcTag.exportData();
-
             nfcDataOutput.textContent = nfcData;
+    
+            // Clear previous output section content
+            outputSection.innerHTML = '';
+            
+            // Create heading
+            const heading = document.createElement('h2');
+            heading.textContent = 'Generated NFC Tag Data';
+            outputSection.appendChild(heading);
+    
+            // Create data output area
+            const dataOutput = document.createElement('pre');
+            dataOutput.id = 'nfcData';
+            dataOutput.textContent = nfcData;
+            outputSection.appendChild(dataOutput);
+    
+            // Create button group
+            const buttonGroup = document.createElement('div');
+            buttonGroup.className = 'button-group';
+    
+            // Create download button
+            const downloadButton = document.createElement('button');
+            downloadButton.className = 'btn';
+            downloadButton.textContent = 'Download .nfc File';
+            downloadButton.onclick = downloadNFCFile;
+            buttonGroup.appendChild(downloadButton);
+    
+            // Create send to Flipper button
+            const sendButton = document.createElement('button');
+            sendButton.className = 'btn';
+            sendButton.id = 'sendToFlipperButton';
+            sendButton.textContent = 'Send to Flipper';
+            sendButton.onclick = sendToFlipper;
+            buttonGroup.appendChild(sendButton);
+    
+            outputSection.appendChild(buttonGroup);
             outputSection.classList.remove('hidden');
+    
         } catch (error) {
             alert(error.message);
             console.error(error);
         }
     }
+    function generateFilename() {
+        const tagType = document.getElementById('tagType').value;
+        const sanitizedInputData = sanitizeFilename(lastInputData);
+        let filename = `nfc_${tagType.toLowerCase()}_${sanitizedInputData}`;
+        if (filename.length > 50) {
+            filename = filename.substring(0, 50);
+        }
+        return filename;
+    }
+    async function sendToFlipper() {
+        const nfcData = document.getElementById('nfcData').textContent;
+        const filename = generateFilename(); // Reuse existing filename generation logic
+        const sendButton = document.querySelector('#sendToFlipperButton');
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'send-status';
+        sendButton.parentNode.appendChild(statusDiv);
 
+        try {
+            sendButton.disabled = true;
+            sendButton.classList.add('sending');
+
+            // Initialize FlipperSerial if not already done
+            if (!flipperSerial) {
+                flipperSerial = new FlipperSerial();
+            }
+
+            // Connect to Flipper if not connected
+            if (!flipperSerial.isConnected) {
+                statusDiv.textContent = 'Connecting to Flipper...';
+                await flipperSerial.connect();
+            }
+
+            // Create directory and write file
+            statusDiv.textContent = 'Creating directory...';
+            await flipperSerial.writeCommand('storage mkdir /ext/nfc');
+
+            statusDiv.textContent = 'Sending to Flipper...';
+            await flipperSerial.writeFile(`/ext/nfc/${filename}.nfc`, nfcData);
+
+            // Success
+            statusDiv.textContent = 'Successfully sent to Flipper!';
+            statusDiv.classList.add('success');
+
+            // Reset after 3 seconds
+            setTimeout(() => {
+                statusDiv.remove();
+                sendButton.classList.remove('sending');
+                sendButton.disabled = false;
+            }, 3000);
+
+        } catch (error) {
+            console.error('Error sending to Flipper:', error);
+            statusDiv.textContent = `Error: ${error.message}. Please try again.`;
+            statusDiv.classList.add('error');
+            flipperSerial = null; // Reset FlipperSerial instance on error
+            sendButton.classList.remove('sending');
+            sendButton.disabled = false;
+        }
+    }
     function isValidInput(type, data) {
         if (type === 'Email') {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
