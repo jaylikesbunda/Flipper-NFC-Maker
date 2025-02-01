@@ -1,16 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Default (light theme) */
+/* Default (dark theme) */
 :root {
     --primary-color: #FF6C00;
     --primary-hover: #FF8C3D;
-    --background-color: rgba(255, 255, 255, 0.8);
-    --surface-color: rgba(240, 240, 240, 0.9);
-    --text-color: #000000;
-    --secondary-text-color: #555555;
-    --border-color: #CCCCCC;
-    --input-background: rgba(255, 255, 255, 0.9);
-    --input-border: #BBBBBB;
+    --background-color: rgba(13, 13, 13, 0.8);
+    --surface-color: rgba(26, 26, 26, 0.9);
+    --text-color: #FFFFFF;
+    --secondary-text-color: #B3B3B3;
+    --border-color: #2C2C2C;
+    --input-background: rgba(38, 38, 38, 0.9);
+    --input-border: #3D3D3D;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --transition-speed: 0.3s;
     --font-family: 'Inter', sans-serif;
@@ -19,15 +19,15 @@
     --button-padding: 12px 24px;
 }
 
-/* Dark theme */
-body.dark-theme {
-    --background-color: rgba(13, 13, 13, 0.8);
-    --surface-color: rgba(26, 26, 26, 0.9);
-    --text-color: #FFFFFF;
-    --secondary-text-color: #B3B3B3;
-    --border-color: #2C2C2C;
-    --input-background: rgba(38, 38, 38, 0.9);
-    --input-border: #3D3D3D;
+/* Light theme */
+body.light-theme {
+    --background-color: rgba(255, 255, 255, 0.8);
+    --surface-color: rgba(240, 240, 240, 0.9);
+    --text-color: #000000;
+    --secondary-text-color: #555555;
+    --border-color: #CCCCCC;
+    --input-background: rgba(255, 255, 255, 0.9);
+    --input-border: #BBBBBB;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -74,18 +74,13 @@ header {
     height: auto;
     margin-left: -372px;
     margin-bottom: -80px;
-    /* Invert the image in light mode */
+    /* Invert the image in dark mode */
     filter: invert(1);
 }
 
-/* In dark mode, do not invert the image */
-body.dark-theme .glitch-image {
-    max-width: 100%;
-    height: auto;
-    margin-left: -372px;
-    margin-bottom: -80px;
-    /* Invert the image in light mode */
-    filter: invert(1);
+/* In light mode, do not invert the image */
+body.light-theme .glitch-image {
+    filter: none;
 }
 
 header h1 {

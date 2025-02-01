@@ -874,17 +874,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for saved theme preference or default to dark theme
     const currentTheme = localStorage.getItem('theme') || 'dark';
     if (currentTheme === 'light') {
-        body.classList.remove('dark-theme');
+        body.classList.add('light-theme');
         themeToggle.textContent = 'Dark Mode';
     } else {
-        body.classList.add('dark-theme');
+        body.classList.remove('light-theme');
         themeToggle.textContent = 'Light Mode';
     }
 
     themeToggle.addEventListener('click', () => {
-        body.classList.toggle('dark-theme');
-        const theme = body.classList.contains('dark-theme') ? 'dark' : 'light';
+        body.classList.toggle('light-theme');
+        const theme = body.classList.contains('light-theme') ? 'light' : 'dark';
         localStorage.setItem('theme', theme);
-        themeToggle.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+        themeToggle.textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
     });
 });
