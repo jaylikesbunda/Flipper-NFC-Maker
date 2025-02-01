@@ -175,6 +175,27 @@
             <button id="themeToggle" class="theme-toggle">Light Mode</button>
         </footer>
     </div>
+
+    <!-- WebSerial Not Available Modal -->
+    <div class="modal-overlay" id="webSerialModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Can't Connect to Flipper</h2>
+            </div>
+            <div class="modal-body">
+                <p>WebSerial connection is not available because:</p>
+                <ul>
+                    <li>You're using a mobile device, or</li>
+                    <li>Your browser doesn't support WebSerial</li>
+                </ul>
+                <p>To connect to your Flipper, please use Chrome on a desktop computer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close" onclick="document.getElementById('webSerialModal').classList.remove('active')">Got it!</button>
+            </div>
+        </div>
+    </div>
+
     <script src="background.js"></script>
     <script src="serial.js"></script>
     <script src="script.js"></script>

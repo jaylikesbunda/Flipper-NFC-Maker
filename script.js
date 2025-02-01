@@ -736,9 +736,38 @@ Pages read: ${this.getNfcPageCount()}`;
         }
         return filename;
     }
+
+    // Modal handling
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('active');
+    }
+
+    function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('active');
+    }
+
+    // Initialize modal close buttons
+    document.addEventListener('DOMContentLoaded', () => {
+        const closeButtons = document.querySelectorAll('.modal-close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const modal = button.closest('.modal-overlay');
+                hideModal(modal.id);
+            });
+        });
+    });
+
     async function sendToFlipper() {
+        // Check if WebSerial is available
+        if (!navigator.serial || /Mobi|Android/i.test(navigator.userAgent)) {
+            showModal('webSerialModal');
+            return;
+        }
+
         const nfcData = document.getElementById('nfcData').textContent;
-        const filename = generateFilename(); // Reuse existing filename generation logic
+        const filename = generateFilename();
         const sendButton = document.querySelector('#sendToFlipperButton');
         const statusDiv = document.createElement('div');
         statusDiv.className = 'send-status';
