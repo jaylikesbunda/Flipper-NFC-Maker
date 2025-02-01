@@ -1,114 +1,114 @@
-**BIG CHANGES COMING TO THIS! Need to update info as the below is no longer (entirely) true.**
+# NFC Tag Generator
 
-Some files that are fun to use. Starting to get a better idea on the structure (Flipper format) of NFC files and payloads.
+This project provides a simple web-based tool for generating NFC tag data compatible with Flipper Zero devices. Users can create NFC tags for URLs, phone numbers, and text, which can then be used with Flipper Zero for various NFC interactions.
 
-Some great reading about [Hacking MIFARE & RFID](https://hackmethod.com/hacking-mifare-rfid/?v=7516fd43adaa).
+## Features
 
-----------------------------------------------
 
-**Flipper Zero can read the following**:
-- T5777 Card Freq 125K
-- 125 kHz RFID (MiFare Classic Card)
-- NFC MiFare Classic Clear Tag
-- NFC HID Card Freq 125KHZ
-- 125 kHz RFID FourPoints.Com Card NFC
-- NFC Mifare Ultral/NTAG Gen1A 1k S50 HF RFID Card
-- NFC UID Freq 13.56MHZ Card | NFC Hotel KeyCards
-- NFC ValuProx 125kHz ISO
+- Compatible with Flipper Zero NFC format
+- Dynamic file naming based on input data
+- Dark mode toggle for better visibility
+- Downloadable .nfc files
 
-----------------------------------------------
+### Supported NFC Types
 
-![Block_0_Explained](https://user-images.githubusercontent.com/57457139/182469731-5b5f2ad0-8ebc-4418-9375-ab97f19a3aeb.png)
+1. **URL**
+   - Generates a URL record with appropriate URI prefixes
+   - Supports schemes: http, https, ftp, ftps, sftp
+   - Automatically applies efficient URI prefixes
+   - Example: `https://www.example.com`
 
-----------------------------------------------
+2. **Phone**
+   - Creates a telephone number record
+   - Uses "tel:" URI scheme
+   - Supports international formats
+   - Example: `+1234567890`
 
-Example using the [RickRoll.nfc](https://github.com/UberGuidoZ/Flipper/blob/main/NFC/Fun_Files/RickRoll.nfc) file. Leave the data in pages 1 through 6 alone (though not always true, but it is for YouTube links.)
+3. **Text**
+   - Produces a plain text record
+   - UTF-8 encoding
+   - Includes language code (default: "en")
+   - Suitable for short messages
 
-```
- Page 7: 79 6F 75 74
- Page 8: 75 2E 62 65
- Page 9: 2F 64 51 77
-Page 10: 34 77 39 57
-Page 11: 67 58 63 51
-```
+4. **Email**
+   - Generates an email address record
+   - Uses "mailto:" URI scheme
+   - Example: `example@example.com`
 
-This is simply the YouTube "[share](https://support.google.com/youtube/answer/57741)" link encoded into HEX and split into 4 byte chunks. See for yourself...
+5. **WiFi**
+   - Creates a WiFi configuration record
+   - Includes SSID, password, authentication type
+   - Format: `SSID:YourNetwork;PASSWORD:YourPassword;AUTH:WPA`
 
-HEX from above: `79 6F 75 74 75 2E 62 65 2F 64 51 77 34 77 39 57 67 58 63 51` <br>
-[Converted](https://www.binaryhexconverter.com/hex-to-ascii-text-converter): youtu.be/dQw4w9WgXcQ
+6. **Contact (vCard)**
+   - Generates a vCard 3.0 record
+   - Includes name, phone, email, etc.
+   - Example:
+     ```
+     BEGIN:VCARD
+     VERSION:3.0
+     N:Doe;John
+     TEL:+1234567890
+     EMAIL:john@example.com
+     END:VCARD
+     ```
 
-The last byte in page 6 (0x04) defines what type of encoding ([data sheet](https://www.nxp.com/docs/en/data-sheet/NTAG213_215_216.pdf) and [URI identifier codes](https://learn.adafruit.com/adafruit-pn532-rfid-nfc/ndef)). To convert your link to HEX, use anything such as an [online tool](https://onlinehextools.com/convert-ascii-to-hex). Read up on [generic cloner passwords](https://github.com/RfidResearchGroup/proxmark3/blob/master/doc/cloner_notes.md) as they may exist and may be needed to access information.
+7. **Geo (Geographic location)**
+   - Creates a location record
+   - Uses "geo:" URI scheme
+   - Format: `geo:37.7749,-122.4194`
 
-One limitation is the URL will be truncated if it goes beyond page 11! If your URL is less than exact, pad it with 00, making sure page 12 stays as "FE 00 00 00". Note that [TinyURL](https://tinyurl.com/app) links appear to fit well and conversion/use is free. If your link doesn't launch automatically when scanned, try using a different URI identifier.
+8. **SMS**
+   - Generates an SMS record
+   - Includes phone number and optional message
+   - Format: `sms:+1234567890?body=Hello%20World`
 
-----------------------------------------------
+9. **LaunchApp (Android Application Record)**
+   - Creates an Android Application Record
+   - Requires package name
+   - Example: `com.example.myapp`
 
-[NTAG Differences](https://www.rfidfuture.com/difference-between-ntag213-ntag215-and-ntag216.html) | [NTAG Datasheet](https://www.nxp.com/docs/en/data-sheet/NTAG213_215_216.pdf) | [ASCII to HEX](https://onlinehextools.com/convert-ascii-to-hex) | [HEX to Decimal](https://www.binaryhexconverter.com/hex-to-decimal-converter) (Other converters at both links.)
+10. **CustomMIME**
+    - Allows custom MIME type records
+    - Format:
+      ```
+      application/x-myapp
+      Custom data here
+      ```
 
-![NFC_Mem_Opt](https://user-images.githubusercontent.com/57457139/168696250-31ce8633-54cb-4ed7-96fb-f71723f686dd.png)
+11. **SocialMedia**
+    - Treated as a special URL type
+    - Optimized for social media links
+    - Example: `https://twitter.com/yourprofile`
 
-Value&nbsp;&nbsp;&nbsp;&nbsp;Protocol &nbsp;&nbsp;&nbsp;&nbsp;([SOURCE](https://learn.adafruit.com/adafruit-pn532-rfid-nfc/ndef))<br>
-------&nbsp;&nbsp;&nbsp;&nbsp;---------- <br>
-0x00&nbsp;&nbsp;&nbsp;&nbsp; No prepending is done ... the entire URI is contained in the URI Field <br>
-0x01&nbsp;&nbsp;&nbsp;&nbsp; `http://www.` <br>
-0x02&nbsp;&nbsp;&nbsp;&nbsp; `https://www.` <br>
-0x03&nbsp;&nbsp;&nbsp;&nbsp; `http://` <br>
-0x04&nbsp;&nbsp;&nbsp;&nbsp; `https://` <br>
-0x05&nbsp;&nbsp;&nbsp;&nbsp; `tel:` <br>
-0x06&nbsp;&nbsp;&nbsp;&nbsp; `mailto:` <br>
-0x07&nbsp;&nbsp;&nbsp;&nbsp; `ftp://anonymous:anonymous@` <br>
-0x08&nbsp;&nbsp;&nbsp;&nbsp; `ftp://ftp.` <br>
-0x09&nbsp;&nbsp;&nbsp;&nbsp; `ftps://` <br>
-0x0A&nbsp;&nbsp;&nbsp;&nbsp; `sftp://` <br>
-0x0B&nbsp;&nbsp;&nbsp;&nbsp; `smb://` <br>
-0x0C&nbsp;&nbsp;&nbsp;&nbsp; `nfs://` <br>
-0x0D&nbsp;&nbsp;&nbsp;&nbsp; `ftp://` <br>
-0x0E&nbsp;&nbsp;&nbsp;&nbsp; `dav://` <br>
-0x0F&nbsp;&nbsp;&nbsp;&nbsp; `news:` <br>
-0x10&nbsp;&nbsp;&nbsp;&nbsp; `telnet://` <br>
-0x11&nbsp;&nbsp;&nbsp;&nbsp; `imap:` <br>
-0x12&nbsp;&nbsp;&nbsp;&nbsp; `rtsp://` <br>
-0x13&nbsp;&nbsp;&nbsp;&nbsp; `urn:` <br>
-0x14&nbsp;&nbsp;&nbsp;&nbsp; `pop:` <br>
-0x15&nbsp;&nbsp;&nbsp;&nbsp; `sip:` <br>
-0x16&nbsp;&nbsp;&nbsp;&nbsp; `sips:` <br>
-0x17&nbsp;&nbsp;&nbsp;&nbsp; `tftp:` <br>
-0x18&nbsp;&nbsp;&nbsp;&nbsp; `btspp://` <br>
-0x19&nbsp;&nbsp;&nbsp;&nbsp; `btl2cap://` <br>
-0x1A&nbsp;&nbsp;&nbsp;&nbsp; `btgoep://` <br>
-0x1B&nbsp;&nbsp;&nbsp;&nbsp; `tcpobex://` <br>
-0x1C&nbsp;&nbsp;&nbsp;&nbsp; `irdaobex://` <br>
-0x1D&nbsp;&nbsp;&nbsp;&nbsp; `file://` <br>
-0x1E&nbsp;&nbsp;&nbsp;&nbsp; `urn:epc:id:` <br>
-0x1F&nbsp;&nbsp;&nbsp;&nbsp; `urn:epc:tag:` <br>
-0x20&nbsp;&nbsp;&nbsp;&nbsp; `urn:epc:pat:` <br>
-0x21&nbsp;&nbsp;&nbsp;&nbsp; `urn:epc:raw:` <br>
-0x22&nbsp;&nbsp;&nbsp;&nbsp; `urn:epc:` <br>
-0x23&nbsp;&nbsp;&nbsp;&nbsp; `urn:nfc:` <br>
+## Usage
 
------
+1. Open the `index.html` file in a web browser.
+2. Select the type of NFC tag you want to create (URL, Phone, or Text).
+3. Enter the data for your NFC tag in the input field.
+4. Click the "Generate NFC Data" button.
+5. Review the generated NFC data.
+6. Click the "Download NFC File" button to save the data as a .nfc file.
 
-Acknowledgements: [RogueMaster](https://github.com/RogueMaster/) | cyanic | Null Silvry | [Equip](https://github.com/equipter/) | DDVL (for discussions, testing, and any files.)
+## File Structure
 
------
+- `index.html`: The main HTML file containing the user interface.
+- `styles.css`: CSS file for styling the web interface.
+- `script.js`: JavaScript file containing the NFC data generation logic.
 
-## Donation Information
+## Technical Details
 
-Nothing is ever expected for the hoarding of digital files, creations I have made, or the people I may have helped.
+The NFC tag generator creates data for NTAG215 chips, which are commonly used in NFC applications. The generated data follows the NDEF (NFC Data Exchange Format) specification and is formatted to be compatible with Flipper Zero devices.
 
-## Ordering from Lab401? [USE THIS LINK FOR 5% OFF!](https://lab401.com/r?id=vsmgoc) (Or code `UberGuidoZ` at checkout.)
 
-I've had so many asking for me to add this.<br>
-![Flipper_Blush](https://user-images.githubusercontent.com/57457139/183561666-4424a3cc-679b-4016-a368-24f7e7ad0a88.jpg) ![Flipper_Love](https://user-images.githubusercontent.com/57457139/183561692-381d37bd-264f-4c88-8877-e58d60d9be6e.jpg)
+## Contributing
 
-**BTC**: `3AWgaL3FxquakP15ZVDxr8q8xVTc5Q75dS`<br>
-**BCH**: `17nWCvf2YPMZ3F3H1seX8T149Z9E3BMKXk`<br>
-**ETH**: `0x0f0003fCB0bD9355Ad7B124c30b9F3D860D5E191`<br>
-**LTC**: `M8Ujk52U27bkm1ksiWUyteL8b3rRQVMke2`<br>
-**PayPal**: `uberguidoz@gmail.com`
+Contributions to improve the NFC Tag Generator are welcome. Please feel free to submit pull requests or create issues for bugs and feature requests.
 
-So, here it is. All donations of *any* size are humbly appreciated.<br>
-![Flipper_Clap](https://user-images.githubusercontent.com/57457139/183561789-2e853ede-8ef7-41e8-a67c-716225177e5d.jpg) ![Flipper_OMG](https://user-images.githubusercontent.com/57457139/183561787-e21bdc1e-b316-4e67-b327-5129503d0313.jpg)
+## License
 
-Donations will be used for hardware (and maybe caffeine) to further testing!<br>
-![UberGuidoZ](https://cdn.discordapp.com/emojis/1000632669622767686.gif)
+This project is open source and available under the [GNU License](LICENSE).
+
+## Disclaimer
+
+This tool is for educational and personal use only. Ensure you have the right to create and use NFC tags before deploying them in any environment. The creators of this tool are not responsible for any misuse or illegal activities conducted with NFC tags generated by this software.
